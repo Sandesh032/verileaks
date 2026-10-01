@@ -1,0 +1,30 @@
+# ── Environment files ───────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Foundry build artifacts ─────────────────────────────────────────────────
+out/
+cache/
+broadcast/
+
+# ── Node.js ─────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ── OS / Editor ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Test coverage ────────────────────────────────────────────────────────────
+coverage/
+lcov.info
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.log

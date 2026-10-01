@@ -1,0 +1,29 @@
+{
+  "name": "verileaks-phase1-tools",
+  "version": "1.0.0",
+  "description": "VeriLeaks Phase 1 off-chain tooling: Merkle tree generation and IPFS storage abstraction",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/.*\\.test\\.js$' --verbose",
+    "test:merkle": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/merkle' --verbose",
+    "test:storage": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/storage' --verbose",
+    "test:integration": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/.*integration' --verbose",
+    "workflow:demo": "node src/workflow.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "form-data": "^4.0.1",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/src/**/*.test.js"
+    ]
+  }
+}
