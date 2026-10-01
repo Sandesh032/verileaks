@@ -141,7 +141,8 @@ foundryup
 ```bash
 # 1. Clone the repository
 git clone <repository-url>
-cd blockchain
+
+cd verileaks
 
 # 2. Install Foundry dependencies
 forge install
