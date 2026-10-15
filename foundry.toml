@@ -5,11 +5,22 @@ libs = ["lib"]
 test = "test"
 script = "script"
 solc_version = "0.8.24"
+# Arbitrum Nitro supports Shanghai opcodes (PUSH0) on every ArbOS release; avoid Cancun-only opcodes (MCOPY/TLOAD)
+# so the same bytecode runs on any Arbitrum Sepolia ArbOS version.
+evm_version = "shanghai"
 optimizer = true
 optimizer_runs = 200
-via_ir = false
+via_ir = true
 ffi = false
 fs_permissions = [{ access = "read", path = "./" }]
+remappings = [
+  "forge-std/=lib/forge-std/src/",
+  "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+  "@chainlink/contracts/=node_modules/@chainlink/contracts/",
+  "@semaphore-protocol/contracts/=node_modules/@semaphore-protocol/contracts/",
+  "@zk-kit/=node_modules/@zk-kit/",
+  "poseidon-solidity/=node_modules/poseidon-solidity/",
+]
 
 [profile.default.fmt]
 line_length = 120
@@ -18,3 +29,6 @@ bracket_spacing = true
 int_types = "long"
 quote_style = "double"
 number_underscore = "thousands"
+
+[rpc_endpoints]
+arbitrum_sepolia = "https://sepolia-rollup.arbitrum.io/rpc"

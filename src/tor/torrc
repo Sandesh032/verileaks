@@ -1,0 +1,17 @@
+# VeriLeaks Tor Hidden Service Configuration
+# This binds the Tor daemon to route traffic to the local Express server.
+
+# Expose the hidden service directory
+HiddenServiceDir /var/lib/tor/verileaks_hidden_service/
+
+# Forward incoming Tor connections on port 80 to our local Express server on port 3000
+HiddenServicePort 80 127.0.0.1:3000
+
+# Security options
+# Do not act as an exit node or relay
+ExitRelay 0
+RelayBandwidthRate 0
+
+# Limit logging to avoid storing sensitive metadata
+SafeLogging 1
+Log notice stdout

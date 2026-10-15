@@ -158,7 +158,7 @@ contract Phase1IntegrationTest is Test {
         bytes32 subId1 = registry.registerSubmission(EVIDENCE_CID, MERKLE_ROOT);
 
         // Submission 2 — different block
-        vm.roll(block.number + 1);
+        vm.roll(vm.getBlockNumber() + 1);
         vm.prank(whistleblower);
         bytes32 subId2 = registry.registerSubmission("QmDifferentCid", root2);
 
