@@ -3,11 +3,11 @@
 > **Decentralized Whistleblower Evidence Bounty Protocol**  
 > Cryptographic evidence integrity, zero-knowledge identity, randomized arbitration, and trustless bounty escrow.
 
-[![Solidity Tests](https://img.shields.io/badge/Foundry%20Tests-63%20passed-brightgreen)](#running-tests)
-[![Jest Tests](https://img.shields.io/badge/Jest%20Tests-42%20passed-brightgreen)](#running-tests)
+[![Solidity Tests](https://img.shields.io/badge/Foundry%20Tests-64%20passed-brightgreen)](#running-tests)
+[![Jest Tests](https://img.shields.io/badge/Jest%20Tests-67%20passed-brightgreen)](#running-tests)
 [![Solidity Version](https://img.shields.io/badge/Solidity-0.8.24-blue)](https://soliditylang.org/)
 [![Network](https://img.shields.io/badge/Target%20EVM-Arbitrum%20(Shanghai)-orange)](https://arbitrum.io/)
-[![Audit Status](https://img.shields.io/badge/Audit-Phase%201%20%26%202%20Remediated-success)](docs/audit/final-audit-report.md)
+[![Audit Status](https://img.shields.io/badge/Audit-Phase%203%20Verified%20%26%20Audited-success)](docs/audit/phase3-security-audit.md)
 
 ---
 
@@ -17,18 +17,20 @@
 - [Core Architecture](#core-architecture)
   - [Phase 1: Foundations, Storage & Escrow](#phase-1-foundations-storage--escrow)
   - [Phase 2: ZK Identity, VRF & Schelling Arbitration](#phase-2-zk-identity-vrf--schelling-arbitration)
+  - [Phase 3: Watchtowers, React DApp & Simulation](#phase-3-watchtowers-react-dapp--simulation)
   - [Privacy & Network Anonymity (Tor & Proxy)](#privacy--network-anonymity-tor--proxy)
 - [Protocol Workflow](#protocol-workflow)
 - [Repository Structure](#repository-structure)
 - [Smart Contracts](#smart-contracts)
-- [Off-Chain Services & Tooling](#off-chain-services--tooling)
+- [Watchtower Network](#watchtower-network)
+- [React Decentralized Application](#react-decentralized-application)
 - [Prerequisites & Installation](#prerequisites--installation)
 - [Environment Configuration](#environment-configuration)
 - [Running Tests](#running-tests)
 - [Local Deployment & Verification](#local-deployment--verification)
 - [Security Model & Threat Mitigations](#security-model--threat-mitigations)
 - [Audit & Compliance Status](#audit--compliance-status)
-- [Phase 3 Roadmap](#phase-3-roadmap)
+- [Roadmap & Limitations](#roadmap--limitations)
 - [License](#license)
 
 ---
@@ -101,6 +103,12 @@
 - **`JurorSelection`**: Requests verifiable randomness from Chainlink VRF v2.5 to randomly sample staked jurors while excluding both the submitter and disputer.
 - **`SchellingVoting`**: Coordinates commit-reveal phases, aggregates juror votes (REAL, FAKE, or INCONCLUSIVE), slashes non-revealing and minority jurors, and rewards the consensus cohort.
 - **`ArbitratedBounty`**: Bridges HTLC bounty escrow with `SchellingVoting`. Automatically claims or refunds bounties based on dispute outcomes.
+
+### Phase 3: Watchtowers, React DApp & Simulation
+- **Watchtower Network (`src/watchtower/`)**: Distributed off-chain monitoring daemon and rules engine. Detects elapsed deadlines (`FINALIZE_DISPUTE`, `CANCEL_TIMEOUT_DISPUTE`, `SETTLE_BOUNTY`, `REFUND_BOUNTY`), performs on-chain preflight checks to prevent race conditions, and persists checkpoints atomically.
+- **Multi-Node Cluster (`MultiNodeCoordinator.js`)**: Coordinates 3 independent watchtower instances on isolated HTTP ports (`9101`, `9102`, `9103`) with separate data directories, proving concurrent monitoring, restart recovery, and double-action prevention.
+- **React Decentralized Application (`frontend/`)**: Modern Web3 application with dedicated tabs for Evidence Submission, Merkle Verification, Bounty Escrow, Juror Staking, Commit-Reveal Arbitration, and Cluster Health Monitoring.
+- **End-to-End Simulation (`src/e2e.test.js`)**: Automated full protocol lifecycle test demonstrating synthetic evidence submission, ZK credential binding, bounty funding, dispute arbitration, automated watchtower resolution, and fault recovery.
 
 ### Privacy & Network Anonymity (Tor & Proxy)
 - **Privacy Upload Proxy (`src/server.js`)**: An Express-based upload intermediary running strictly on `127.0.0.1`. Holds files in memory buffer, enforces file size caps (50 MB), and relays payloads to Pinata IPFS without leaking whistleblower IP addresses, browser fingerprints, or API secrets.
@@ -206,129 +214,108 @@ verileaks/
 
 ---
 
-## Prerequisites & Installation
-
-### Prerequisites
-- **Node.js**: v18.x or v20.x+
-- **Foundry Toolchain**: `forge`, `cast`, `anvil` ([Installation Guide](https://getfoundry.sh/))
-- **Git**
-- Optional: **Tor daemon** (`tor`) for live `.onion` routing.
-
-### Installation
-
+## Pr### 1. Smart Contract Test Suite (Foundry)
 ```bash
-# 1. Clone repository
-git clone https://github.com/Sandesh032/verileaks.git
-cd verileaks
-
-# 2. Install Foundry dependencies
-forge install
-
-# 3. Install Node.js dependencies
-npm install
-
-# 4. Set up environment configuration
-cp .env.example .env
-```
-
----
-
-## Environment Configuration
-
-Edit `.env` with your deployment parameters:
-
-```env
-# ── Ethereum / Foundry ──────────────────────────────────────────────────────
-PRIVATE_KEY=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-RPC_URL=http://127.0.0.1:8545
-
-# ── IPFS / Pinata (Optional for local testing; Mock provider used by default) ──
-PINATA_API_URL=https://api.pinata.cloud
-PINATA_API_KEY=your_pinata_api_key
-PINATA_API_SECRET=your_pinata_api_secret
-
-# ── Phase 2: Arbitrum Sepolia Setup ─────────────────────────────────────────
-SEMAPHORE_ADDRESS=0x3889927F0B5Eb1a02C6E2C20b38a1Bb9E68DCE46
-VRF_COORDINATOR=0x5CE8D5A2BC84beb22a398CCA51996F7930313D61
-VRF_KEY_HASH=0x1770bdc7eec7771f7ba4ffd640f34260d7f095b79c9ed2cb5a8553610deefb0c
-VRF_SUB_ID=your_chainlink_vrf_subscription_id
-```
-
----
-
-## Running Tests
-
-The test suite validates contract correctness, edge cases, gas consumption, fuzzing, and off-chain tooling.
-
-### 1. Smart Contract Test Suite (Foundry)
-```bash
-# Run all 63 Solidity tests
+# Run all 64 Solidity tests
 forge test -vv
 
 # Run tests with gas report
 forge test --gas-report
 
-# Run specific test suites
+# Run specific integration suites
 forge test --match-path test/Phase2Integration.t.sol -vv
+forge test --match-path test/DeployAll.t.sol -vv
 forge test --match-path test/HTLC.t.sol -vv
 ```
 
-**Result:** `63 passed, 0 failed` across 5 suites.
+**Result:** `64 passed, 0 failed` across 6 suites.
 
 ### 2. Off-Chain & Integration Test Suite (Jest)
 ```bash
-# Run all 42 JavaScript tests
+# Run all 67 JavaScript tests (unit, integration, watchtower, frontend, and e2e)
 npm test
 
 # Run individual modules
 npm run test:merkle       # Merkle tree & proof tests
 npm run test:storage      # Storage provider tests
-npx jest src/server.test.js # Privacy proxy & health tests
+npm run test:watchtower   # Watchtower persistence & rules tests
+npm run test:e2e          # Full protocol lifecycle end-to-end simulation
 ```
 
-**Result:** `42 passed, 0 failed` across 4 suites.
+**Result:** `67 passed, 0 failed` across 7 suites.
 
-### 3. Interactive Workflow Demonstration
+---
+
+## Watchtower Network
+
+The VeriLeaks watchtower network ensures protocol liveness by monitoring dispute deadlines and executing permissionless state transitions (`finalize`, `cancelDispute`, `settle`, `refund`).
+
 ```bash
-# Run end-to-end evidence workflow with simulated IPFS
-node src/workflow.js
+# Run single watchtower node (read-only monitoring by default)
+npm run watchtower
 
-# Run with live Pinata IPFS (requires PINATA credentials in .env)
-node src/workflow.js --real-ipfs
+# Run 3-node simulated cluster (isolated local stores, ports 9101, 9102, 9103)
+npm run watchtower:cluster
 ```
+
+### Health & Monitoring Endpoints
+Each watchtower node exposes HTTP inspection endpoints:
+- `GET http://127.0.0.1:9101/health` — Node uptime and sync state
+- `GET http://127.0.0.1:9101/status` — Tracked disputes, bounties, and checkpoint
+- `GET http://127.0.0.1:9101/alerts` — Operational and security alerts log
+
+---
+
+## React Decentralized Application
+
+The frontend is a modern, responsive Web3 application built with Vite and React.
+
+```bash
+# Start local development server (http://localhost:5173)
+npm run frontend:dev
+
+# Build production bundle
+npm run frontend:build
+
+# Preview production build
+npm run frontend:preview
+```
+
+### Key DApp Features:
+1. **Overview & Protocol Lifecycle:** Comprehensive disclosure of protocol guarantees, prototype status, and privacy limits.
+2. **Whistleblower Submission:** Client-side 1 MiB chunking with domain-separated SHA-256 Merkle root computation, privacy proxy upload, and on-chain registration.
+3. **Bounties Escrow:** Funding arbitrated bounties, inspecting timelocks, and executing pull-payment payouts.
+4. **Juror Staking:** Staking/unstaking ETH on `TokenStaking`.
+5. **Arbitration Interface:** Inspecting active cases, generating salted vote commitments, and submitting cleartext reveals.
+6. **Watchtower Dashboard:** Live cluster health polling (nodes 9101, 9102, 9103) with alert stream display.
 
 ---
 
 ## Local Deployment & Verification
 
-### Deploying to Local Anvil Node
+### Unified Protocol Deployment (`DeployAll.s.sol`)
 
-1. **Start Anvil:**
-   ```bash
-   anvil --port 8545 --chain-id 31337
-   ```
+Deploy all Phase 1 + Phase 2 contracts and wire roles in a single atomic transaction sequence:
 
-2. **Deploy Phase 1 Contracts:**
-   ```bash
-   forge script script/Deploy.s.sol \
-     --rpc-url http://127.0.0.1:8545 \
-     --broadcast \
-     --legacy
-   ```
+```bash
+# 1. Start local Anvil instance
+anvil --port 8545 --chain-id 31337
 
-3. **Deploy Phase 2 Contracts:**
-   ```bash
-   forge script script/Phase2Deploy.s.sol \
-     --rpc-url http://127.0.0.1:8545 \
-     --broadcast \
-     --legacy
-   ```
+# 2. Deploy complete protocol and generate deployments.json
+forge script script/DeployAll.s.sol:DeployAll \
+  --rpc-url http://127.0.0.1:8545 \
+  --broadcast \
+  --tc DeployAll
+```
+
+This writes `deployments.json`, which is automatically loaded by both the watchtower CLI and the React DApp.
 
 ### Deploying to Arbitrum Sepolia
 ```bash
-forge script script/Phase2Deploy.s.sol \
+forge script script/DeployAll.s.sol:DeployAll \
   --rpc-url arbitrum_sepolia \
   --broadcast \
+  --tc DeployAll \
   --verify
 ```
 
@@ -341,8 +328,8 @@ forge script script/Phase2Deploy.s.sol \
 | **Whistleblower IP Tracing** | Critical | Evidence uploaded via Tor Hidden Service to local memory-only proxy; no direct IPFS client connection. |
 | **Bounty Double-Claiming** | High | HTLC state checks (`claimed` flag) and Semaphore ZK nullifiers prevent replay attacks. |
 | **Juror Collusion / Bribery** | High | Chainlink VRF v2.5 provides unpredictable juror selection; commit-reveal hides votes until reveal deadline. |
-| **Reentrancy Attacks** | High | Checks-Effects-Interactions strictly maintained; external token and staking interactions emit events prior to state modification. |
-| **Denial of Service (DoS)** | Medium | Jury size strictly capped (`MAX_JURY = 15`); loops are bounded; gas limits verified. |
+| **Reentrancy Attacks** | High | OpenZeppelin `ReentrancyGuard` on all state-mutating functions; pull-payments (`pendingPayout`) prevent reentrancy during settlement. |
+| **Watchtower Replay / Race Conditions** | Medium | On-chain preflight checks verify contract state before transaction submission; duplicate actions safely skipped. |
 | **Front-Running Vote Reveals** | Medium | Salted hash commitments (`keccak256(disputeId \|\| juror \|\| vote \|\| salt)`) ensure votes cannot be copied in the mempool. |
 | **L2 EVM Incompatibilities** | Medium | `foundry.toml` explicitly sets `evm_version = "shanghai"` to avoid unsupported Cancun opcodes (`MCOPY`, `TLOAD`) on Arbitrum. |
 
@@ -350,31 +337,29 @@ forge script script/Phase2Deploy.s.sol \
 
 ## Audit & Compliance Status
 
-The codebase underwent a targeted audit and remediation pass:
-- **Baseline Audit:** Documented in [`docs/audit/phase1-phase2-baseline.md`](docs/audit/phase1-phase2-baseline.md).
-- **Remediated Findings:**
-  - **F-001 (Missing Tor Infrastructure):** Remediated via `src/tor/torrc` configuration and server-side isolation.
-  - **F-002 (Pinata IP Exposure):** Remediated via `src/server.js` reverse proxy and automated tests.
-  - **F-003 (Phase 2 Deployment Scripts):** Completed via `script/Phase2Deploy.s.sol`.
-  - **F-004 (Arbitrum RPC Config):** Configured in `foundry.toml`.
-  - **Compiler Warnings:** Resolved uninitialized variables and reentrancy event orderings.
-- **Detailed Findings & Traceability Matrix:**
-  - [`docs/audit/findings.md`](docs/audit/findings.md)
-  - [`docs/audit/requirements-matrix.md`](docs/audit/requirements-matrix.md)
-  - [`docs/audit/final-audit-report.md`](docs/audit/final-audit-report.md)
+The codebase has undergone a full Phase 3 security review:
+- **Phase 3 Security & Privacy Audit:** [`docs/audit/phase3-security-audit.md`](docs/audit/phase3-security-audit.md)
+- **Requirements Traceability Matrix:** [`docs/audit/requirements-matrix.md`](docs/audit/requirements-matrix.md)
+- **Phase 3 Architecture Specification:** [`docs/phase3-architecture.md`](docs/phase3-architecture.md)
+- **Watchtower Network Specification:** [`docs/watchtower.md`](docs/watchtower.md)
 
 ---
 
-## Phase 3 Roadmap
+## Roadmap & Limitations
 
-The upcoming Phase 3 milestone will introduce:
-- [ ] **React / Web3 User Interface**: Whistleblower submission portal, juror dashboard, and bounty crowdfunding UI.
-- [ ] **Automated Watchtowers**: Off-chain daemons monitoring mempool activity and automated HTLC claims.
-- [ ] **Filecoin Storage Persistence**: Decentralized, long-term archival storage deals.
-- [ ] **Testnet & Mainnet Verification**: Live multi-party dispute drills on Arbitrum One.
+### Completed Deliverables (Phases 1–3)
+- [x] On-chain Evidence Registry, Staking, and HTLC Escrow (Phase 1)
+- [x] Semaphore ZK Credentials, Tor Privacy Proxy, Chainlink VRF, Schelling Voting, and Arbitrated Bounty (Phase 2)
+- [x] Multi-Node Watchtower Network, React DApp, and E2E Simulation (Phase 3)
+
+### Known Limitations & Operational Requirements
+1. **Public IPFS vs. Encryption:** While the privacy upload proxy shields client IP addresses, data pinned to IPFS gateways is publicly retrievable if the CID is known. Sensitive documents must be encrypted client-side prior to submission.
+2. **Local Multi-Node Simulation:** Multi-node simulation running on localhost demonstrates software independence and concurrency safety, but does not provide geographic or administrative decentralization.
+3. **Live Testnet Randomness:** In production or live Arbitrum Sepolia testing, Chainlink VRF requires an active LINK token subscription and coordinator fulfillment.
 
 ---
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+

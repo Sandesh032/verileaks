@@ -10,6 +10,14 @@
     "test:merkle": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/merkle' --verbose",
     "test:storage": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/storage' --verbose",
     "test:integration": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/.*integration' --verbose",
+    "test:watchtower": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/watchtower' --verbose",
+    "test:e2e": "node --experimental-vm-modules node_modules/.bin/jest src/e2e.test.js --verbose --runInBand",
+    "watchtower": "node src/watchtower/cli.js",
+    "watchtower:cluster": "node src/watchtower/cli.js --cluster",
+    "deploy:all": "~/.foundry/bin/forge script script/DeployAll.s.sol:DeployAll --broadcast",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:preview": "npm --prefix frontend run preview",
     "workflow:demo": "node src/workflow.js"
   },
   "dependencies": {
@@ -21,6 +29,7 @@
     "@semaphore-protocol/proof": "4.14.3",
     "@zk-kit/lean-imt.sol": "2.0.1",
     "dotenv": "^16.4.7",
+    "ethers": "^6.17.0",
     "express": "^5.3.0",
     "form-data": "^4.0.1",
     "multer": "^2.4.0",
