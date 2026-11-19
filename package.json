@@ -6,6 +6,7 @@
   "license": "MIT",
   "main": "src/index.js",
   "scripts": {
+    "start": "node start-all.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/.*\\.test\\.js$' --verbose",
     "test:merkle": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/merkle' --verbose",
     "test:storage": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='src/storage' --verbose",

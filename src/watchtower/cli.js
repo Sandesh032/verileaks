@@ -45,9 +45,16 @@ const isCluster = args.includes("--cluster");
 
 if (isCluster) {
   console.log("=== Launching VeriLeaks Multi-Node Watchtower Cluster (3 Nodes) ===");
+  const defaultWatchtowerKey =
+    process.env.PRIVATE_KEY ||
+    "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6";
+  const activeSigner = new ethers.Wallet(defaultWatchtowerKey, provider);
+  console.log(`Watchtower Node 1 configured as Active Automated Executor (${activeSigner.address})`);
+
   const coordinator = new MultiNodeCoordinator({
     nodeCount: 3,
     provider,
+    signers: [activeSigner, null, null],
     contractAddresses,
     baseDataDir: ".data/watchtowers"
   });

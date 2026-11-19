@@ -135,7 +135,13 @@ export class WatchtowerWorker {
     try {
       const latestBlock = await this.provider.getBlockNumber();
       const targetBlock = Math.max(0, latestBlock - this.confirmBlocks);
-      const currentCheckpoint = this.store.getCheckpoint();
+      let currentCheckpoint = this.store.getCheckpoint();
+
+      if (currentCheckpoint > 0 && latestBlock < currentCheckpoint) {
+        this.store.clear();
+        currentCheckpoint = 0;
+        this._log("INFO", `Detected chain reset (head block ${latestBlock}). Cleared watchtower state.`);
+      }
 
       let fromBlock = currentCheckpoint > 0 ? currentCheckpoint + 1 : this.startBlock;
 
