@@ -14,6 +14,7 @@ export function SubmitTab({
   onSwitchRole,
   onSubmissionRegistered,
   onProceedToBounty,
+  onProceedToArbitration,
   onAlert
 }) {
   const [file, setFile] = useState(null);
@@ -143,7 +144,9 @@ export function SubmitTab({
         submissionId ||
         ethers.keccak256(ethers.toUtf8Bytes(cid + ":" + rootHex));
 
-      // Link this evidence submission to the selected Open Bounty & store file content for VRF-selected juror download!
+      // Link this evidence submission to the selected Open Bounty, store file content, and automatically trigger VRF Jury Selection!
+      let autoDisputeId = null;
+      let autoSelectedJurors = [];
       if (provider && targetBountyId) {
         const bytes = new Uint8Array(fileBuffer);
         let binary = "";
@@ -156,7 +159,7 @@ export function SubmitTab({
           textPreview = new TextDecoder("utf-8", { fatal: false }).decode(bytes.slice(0, 2048));
         } catch (_) {}
 
-        await provider.send("verileaks_linkSubmissionToBounty", [
+        const linkRes = await provider.send("verileaks_linkSubmissionToBounty", [
           Number(targetBountyId),
           finalSubId,
           currentAccount,
@@ -169,10 +172,16 @@ export function SubmitTab({
             textPreview
           }
         ]);
+        if (linkRes?.disputeId) {
+          autoDisputeId = linkRes.disputeId;
+          autoSelectedJurors = linkRes.selectedJurors || [];
+        }
       }
 
       setResult({
         bountyId: targetBountyId,
+        disputeId: autoDisputeId,
+        selectedJurors: autoSelectedJurors,
         submissionId: finalSubId,
         merkleRoot: rootHex,
         ipfsCid: cid,
@@ -182,11 +191,13 @@ export function SubmitTab({
       });
 
       if (onSubmissionRegistered) {
-        onSubmissionRegistered(finalSubId, targetBountyId);
+        onSubmissionRegistered(finalSubId, targetBountyId, autoDisputeId);
       }
 
       onAlert(
-        `Evidence anchored on-chain and linked to Bounty #${targetBountyId}! Now the Bounty Funder can trigger VRF Jury Verification.`,
+        autoDisputeId
+          ? `Evidence anchored & Chainlink VRF automatically selected 3 random Jurors for Dispute #${autoDisputeId}!`
+          : `Evidence anchored on-chain and linked to Bounty #${targetBountyId}!`,
         "success"
       );
     } catch (err) {
@@ -386,19 +397,49 @@ export function SubmitTab({
               }}
             >
               <h3 style={{ color: "var(--success)" }}>
-                ✅ Evidence Anchored & Linked to Bounty #{result.bountyId}
+                ✅ Evidence Anchored & VRF Jury Automatically Selected!
               </h3>
-              {onProceedToBounty && (
+              {result.disputeId && onProceedToArbitration ? (
                 <button
                   type="button"
                   className="btn btn-primary"
                   style={{ padding: "8px 16px", fontSize: "0.85rem" }}
-                  onClick={onProceedToBounty}
+                  onClick={() => onProceedToArbitration(result.disputeId)}
                 >
-                  Step 3: Return to Bounty #{result.bountyId} to Trigger Jury Arbitration →
+                  ⚖️ Step 3: Go to Jury Verification & Voting (Dispute #{result.disputeId}) →
                 </button>
+              ) : (
+                onProceedToBounty && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ padding: "8px 16px", fontSize: "0.85rem" }}
+                    onClick={onProceedToBounty}
+                  >
+                    Return to Bounty #{result.bountyId} →
+                  </button>
+                )
               )}
             </div>
+
+            {result.disputeId && (
+              <div
+                className="notice-card"
+                style={{
+                  borderColor: "var(--accent-cyan)",
+                  background: "rgba(6, 182, 212, 0.08)",
+                  fontSize: "0.85rem",
+                  marginBottom: "16px"
+                }}
+              >
+                ⚡ <strong>Automated Chainlink VRF Jury Selection Triggered (Dispute #{result.disputeId}):</strong>
+                <div style={{ marginTop: "4px", color: "#e2e8f0" }}>
+                  3 random jurors have been drawn from the 5-juror pool and <code>1.0 ETH</code>{" "}
+                  stake has been locked from each selected juror. The remaining 2 unselected jurors
+                  are blocked from accessing this case.
+                </div>
+              </div>
+            )}
 
             <div className="form-group">
               <label className="form-label">Submission ID (Anchored on SubmissionRegistry.sol)</label>

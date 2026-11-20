@@ -96,7 +96,7 @@ export function App() {
     try {
       const bal = await rpcProvider.getBalance(address);
       setEthBalance(Number(ethers.formatEther(bal)).toFixed(3));
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   const selectDemoWallet = useCallback(
@@ -131,7 +131,7 @@ export function App() {
           setLatestSubmissionId(last.submissionId);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleRoleChange = async (walletId) => {
@@ -177,7 +177,7 @@ export function App() {
           <div className="brand-title">
             <span>🛡️ VeriLeaks</span>
           </div>
-          <span className="brand-badge">RBAC Interactive Demo</span>
+          <span className="brand-badge">Demo</span>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
@@ -320,15 +320,14 @@ export function App() {
                 alert.type === "error"
                   ? "rgba(239, 68, 68, 0.2)"
                   : alert.type === "success"
-                  ? "rgba(16, 185, 129, 0.2)"
-                  : "rgba(99, 102, 241, 0.2)",
-              border: `1px solid ${
-                alert.type === "error"
-                  ? "var(--danger)"
-                  : alert.type === "success"
+                    ? "rgba(16, 185, 129, 0.2)"
+                    : "rgba(99, 102, 241, 0.2)",
+              border: `1px solid ${alert.type === "error"
+                ? "var(--danger)"
+                : alert.type === "success"
                   ? "var(--success)"
                   : "var(--primary)"
-              }`,
+                }`,
               color: "#ffffff",
               fontSize: "0.9rem"
             }}
@@ -351,12 +350,17 @@ export function App() {
             selectedWalletId={selectedWalletId}
             activeBountyId={activeBountyId}
             onSwitchRole={handleRoleChange}
-            onSubmissionRegistered={(subId, bId) => {
+            onSubmissionRegistered={(subId, bId, dId) => {
               setLatestSubmissionId(subId);
               if (bId) setActiveBountyId(String(bId));
+              if (dId) setActiveDisputeId(String(dId));
               refreshBalance(provider, currentAccount);
             }}
             onProceedToBounty={() => setActiveTab("bounties")}
+            onProceedToArbitration={(dId) => {
+              if (dId) setActiveDisputeId(String(dId));
+              setActiveTab("arbitration");
+            }}
             onAlert={triggerAlert}
           />
         )}

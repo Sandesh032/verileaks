@@ -1,106 +1,58 @@
 {
   "checkpoint": {
-    "lastProcessedBlock": 103,
-    "updatedAt": "2026-11-19T16:02:01.169Z"
+    "lastProcessedBlock": 101,
+    "updatedAt": "2026-11-20T03:27:32.879Z"
   },
   "processedEvents": {
-    "31337:0x9e361ac6c43362d5d6d3a768fdfa9ad6a17863d8d44f8995353314e667865b99:0": {
+    "31337:0x1fdc347aa5f37a788c26e9d67d4d1929c348e3095cc5d39260720bfc07bec908:0": {
       "contractName": "SubmissionRegistry",
       "eventName": "SubmissionRegistered",
       "blockNumber": 101,
-      "txHash": "0x9e361ac6c43362d5d6d3a768fdfa9ad6a17863d8d44f8995353314e667865b99",
-      "recordedAt": "2026-11-19T16:00:47.165Z"
-    },
-    "31337:0xe47c92ac98f369e53a45e1f35340f2e773ad7ec331dcd52ec5e359cc12ce4cb3:0": {
-      "contractName": "ArbitratedBounty",
-      "eventName": "BountyFunded",
-      "blockNumber": 102,
-      "txHash": "0xe47c92ac98f369e53a45e1f35340f2e773ad7ec331dcd52ec5e359cc12ce4cb3",
-      "recordedAt": "2026-11-19T16:01:41.325Z"
-    },
-    "31337:0x9200ae881d17c9f5a8837644d52b095a7a35479566a795b4830443731429e42d:0": {
-      "contractName": "SubmissionRegistry",
-      "eventName": "SubmissionRegistered",
-      "blockNumber": 103,
-      "txHash": "0x9200ae881d17c9f5a8837644d52b095a7a35479566a795b4830443731429e42d",
-      "recordedAt": "2026-11-19T16:02:01.095Z"
+      "txHash": "0x1fdc347aa5f37a788c26e9d67d4d1929c348e3095cc5d39260720bfc07bec908",
+      "recordedAt": "2026-11-20T03:27:32.807Z"
     }
   },
   "executedActions": {},
   "disputes": {},
-  "bounties": {
-    "1": {
-      "submissionId": "0xe003ff8fce717d96fe8cbea6732e0cd499a5bdba002035bc69ba68ceeac4c1de",
-      "funder": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-      "whistleblower": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-      "amount": "1500000000000000000",
-      "lockId": "0xdc3efa82924703cac7f2e667552fec733578d30b232515f88e956031a050132e",
-      "timelock": 1795708900,
-      "status": 1,
-      "bountyId": "1",
-      "updatedAt": "2026-11-19T16:01:41.325Z"
-    }
-  },
+  "bounties": {},
   "submissions": {
     "0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c": {
       "submitter": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
       "ipfsCid": "Qm0fc291d0196439aad50bf0a8d1563198c260943c897d",
       "merkleRoot": "0xa8a38eb1ab21709b844a9f160bd64b0baf6a887291659b7766f598dd5eac9e1f",
-      "timestamp": 1795103446,
+      "timestamp": 1795144651,
       "submissionId": "0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c",
-      "updatedAt": "2026-11-19T16:00:47.164Z"
-    },
-    "0x7306b40e42280aaa35b0c955e276959738a903fd4b1d318ba765eb71cd83acc2": {
-      "submitter": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-      "ipfsCid": "Qm0aa1c4c524229a547d1ed715b6dc55819e60309be16a",
-      "merkleRoot": "0xc3b256320a756cf52dc0605ceb579d1ac97cb053903fa4dfd8e65931348377f2",
-      "timestamp": 1795104120,
-      "submissionId": "0x7306b40e42280aaa35b0c955e276959738a903fd4b1d318ba765eb71cd83acc2",
-      "updatedAt": "2026-11-19T16:02:01.093Z"
+      "updatedAt": "2026-11-20T03:27:32.805Z"
     }
   },
   "alerts": [
     {
-      "id": "1795104121094-sgfra",
-      "level": "INFO",
-      "message": "[watchtower-node-3] Observed SubmissionRegistered: 0x7306b40e42280aaa35b0c955e276959738a903fd4b1d318ba765eb71cd83acc2",
-      "details": {},
-      "timestamp": "2026-11-19T16:02:01.094Z"
-    },
-    {
-      "id": "1795104101325-tdy73",
-      "level": "INFO",
-      "message": "[watchtower-node-3] Observed BountyFunded: #1",
-      "details": {},
-      "timestamp": "2026-11-19T16:01:41.325Z"
-    },
-    {
-      "id": "1795104047165-i9pak",
+      "id": "1795145252806-jbajy",
       "level": "INFO",
       "message": "[watchtower-node-3] Observed SubmissionRegistered: 0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c",
       "details": {},
-      "timestamp": "2026-11-19T16:00:47.165Z"
+      "timestamp": "2026-11-20T03:27:32.806Z"
     },
     {
-      "id": "1795104047151-bpmb8",
+      "id": "1795145252789-1gqm1",
       "level": "INFO",
       "message": "[watchtower-node-3] Health monitoring HTTP server listening on http://127.0.0.1:9103",
       "details": {},
-      "timestamp": "2026-11-19T16:00:47.151Z"
+      "timestamp": "2026-11-20T03:27:32.789Z"
     },
     {
-      "id": "1795104047143-t3nh4",
+      "id": "1795145252769-2x0b1",
       "level": "INFO",
       "message": "[watchtower-node-3] Watchtower started with checkpoint at block 0",
       "details": {},
-      "timestamp": "2026-11-19T16:00:47.143Z"
+      "timestamp": "2026-11-20T03:27:32.769Z"
     },
     {
-      "id": "1795104047142-plhja",
+      "id": "1795145252768-jwm1c",
       "level": "INFO",
       "message": "[watchtower-node-3] Connected to network chainId: 31337",
       "details": {},
-      "timestamp": "2026-11-19T16:00:47.142Z"
+      "timestamp": "2026-11-20T03:27:32.768Z"
     }
   ]
 }

@@ -1036,7 +1036,108 @@ function handleRpcMethod(method, params = []) {
         b.hasEvidence = true;
         b.ipfsCid = cid || "";
         b.merkleRoot = merkleRoot || "";
-        return { ok: true, bountyId: bId, submissionId };
+
+        // Automatically initiate Chainlink VRF 3-of-5 Jury Selection when evidence is uploaded for a FUNDED bounty!
+        let createdDisputeId = b.activeDispute;
+        let selectedJurors = [];
+        if (b.status === 1) {
+          blockNumber++;
+          const autoTxHash =
+            "0x" +
+            crypto
+              .createHash("sha256")
+              .update(`auto-vrf-dispute:${bId}:${submissionId}:${Date.now()}`)
+              .digest("hex");
+
+          createdDisputeId = disputes.size + 1;
+          b.status = 2; // DISPUTED (Under VRF Jury Arbitration)
+          b.openCount += 1;
+          b.activeDispute = createdDisputeId;
+
+          const ts = nowTimestamp();
+          const commitDeadline = ts + DEFAULT_CFG.commitDuration;
+          const revealDeadline = commitDeadline + DEFAULT_CFG.revealDuration;
+
+          selectedJurors = selectRandomJurors(JUROR_LIST, DEFAULT_CFG.jurySize);
+
+          for (const jAddr of selectedJurors) {
+            if (getFree(jAddr) < DEFAULT_CFG.stakePerJuror) {
+              setStake(jAddr, getStake(jAddr) + DEFAULT_CFG.stakePerJuror);
+            }
+            const newLock = getLocked(jAddr) + DEFAULT_CFG.stakePerJuror;
+            setLocked(jAddr, newLock);
+            emitLog(
+              deployments.staking,
+              ifaces.staking,
+              "StakeLocked",
+              [jAddr, DEFAULT_CFG.stakePerJuror, newLock],
+              autoTxHash
+            );
+            disputeVotes.set(`${createdDisputeId}:${jAddr.toLowerCase()}`, {
+              selected: true,
+              committed: false,
+              revealed: false,
+              vote: 0,
+              commitment: "0x" + "00".repeat(32),
+              penalty: 0n,
+              reward: 0n
+            });
+          }
+
+          disputes.set(createdDisputeId, {
+            disputeId: createdDisputeId,
+            creator: deployments.arbitratedBounty,
+            status: 2, // ACTIVE
+            outcome: 0,
+            createdAt: ts,
+            commitDeadline,
+            revealDeadline,
+            committed: 0,
+            revealedReal: 0,
+            revealedFake: 0,
+            submissionId: b.submissionId,
+            externalRef: bId,
+            cfg: { ...DEFAULT_CFG },
+            jurors: [...selectedJurors],
+            penaltyPool: 0n
+          });
+
+          emitLog(
+            deployments.voting,
+            ifaces.voting,
+            "DisputeCreated",
+            [
+              BigInt(createdDisputeId),
+              deployments.arbitratedBounty,
+              b.submissionId,
+              BigInt(bId),
+              BigInt(createdDisputeId)
+            ],
+            autoTxHash
+          );
+          emitLog(
+            deployments.voting,
+            ifaces.voting,
+            "JurorsSelected",
+            [BigInt(createdDisputeId), selectedJurors, BigInt(commitDeadline), BigInt(revealDeadline)],
+            autoTxHash
+          );
+          emitLog(
+            deployments.arbitratedBounty,
+            ifaces.bounty,
+            "DisputeOpened",
+            [BigInt(bId), BigInt(createdDisputeId), BigInt(b.openCount), BigInt(8888 + createdDisputeId)],
+            autoTxHash
+          );
+        }
+
+        return {
+          ok: true,
+          bountyId: bId,
+          submissionId,
+          disputeId: createdDisputeId,
+          selectedJurors
+        };
       }
       return { ok: false };
     }

@@ -148,14 +148,14 @@ Then open **http://127.0.0.1:5173** in your browser. Use the built-in **Active R
 1. The **`🏦 Bounty Funder`** posts an investigation case description and deposits ETH (e.g., `1.5 ETH`) into `ArbitratedBounty.fundBounty()` with an HTLC timelock window.
 2. Funds are locked on-chain. The Funder is strictly prevented from unilaterally refunding an active bounty while it is open.
 
-### 2. Confidential Evidence Submission (`2. Submit Evidence`)
+### 2. Confidential Evidence Submission & Automated VRF Jury Trigger (`2. Submit Evidence`)
 1. The **`🕵️ Whistleblower`** inspects the open funded bounties, verifies that the ETH reward is locked in escrow, and selects the target bounty case.
-2. The client chunks the evidence file into 1 MiB segments, computes the domain-separated SHA-256 Merkle root, uploads the file via the **Privacy Upload Proxy (`127.0.0.1:3000`)** to obtain an IPFS `CID`, and calls `SubmissionRegistry.registerSubmission(cid, merkleRoot)` to anchor the evidence and link it to the bounty.
+2. The client chunks the evidence file into 1 MiB segments, computes the domain-separated SHA-256 Merkle root, uploads the file via the **Privacy Upload Proxy (`127.0.0.1:3000`)** to obtain an IPFS `CID`, and calls `SubmissionRegistry.registerSubmission(cid, merkleRoot)` to anchor the evidence.
+3. **Automatic Jury Selection (Anti-Ghosting Guarantee):** The moment evidence is uploaded and linked to a funded bounty, the protocol **automatically initiates Chainlink VRF v2.5 3-of-5 Jury Selection** (creating the Dispute and transitioning the bounty to `DISPUTED`) so a Bounty Funder can never stall or ignore the whistleblower's submission.
 
-### 3. Dispute Initiation & 3-of-5 Chainlink VRF Jury Selection
-1. Once evidence is attached, the **`🏦 Bounty Funder`** triggers `openDispute()` to initiate decentralized verification.
-2. **Chainlink VRF v2.5** randomly selects **3 jurors out of the 5 staked jurors (`Juror 1`–`Juror 5`)** and locks `1.000 ETH` of stake (`stakePerJuror`) from each of the 3 selected jurors in `TokenStaking.sol`.
-3. The remaining **2 unselected jurors** have `0 ETH` locked and are granted **zero authorization** to access the evidence or vote on that dispute.
+### 3. 3-of-5 Chainlink VRF Jury Sampling & Stake Locking
+1. **Chainlink VRF v2.5** randomly selects **3 jurors out of the 5 staked jurors (`Juror 1`–`Juror 5`)** and locks `1.000 ETH` of stake (`stakePerJuror`) from each of the 3 selected jurors in `TokenStaking.sol`.
+2. The remaining **2 unselected jurors** have `0 ETH` locked and are granted **zero authorization** to access the evidence or vote on that dispute.
 
 ### 4. VRF-Gated Evidence Download & Cryptographic Verification (`4. Arbitration & Voting`)
 1. Selected VRF jurors **cannot vote blindly**—Phase 1 Commit is locked until the juror downloads and verifies the evidence file.
