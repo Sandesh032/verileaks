@@ -38,7 +38,7 @@ export function SubmitTab({
           setTargetBountyId(String(summary.bounties[summary.bounties.length - 1].bountyId));
         }
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [provider, targetBountyId]);
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export function SubmitTab({
           const uploadData = await response.json();
           cid = uploadData.cid;
         }
-      } catch (_) {}
+      } catch (_) { }
 
       if (!cid) {
         cid = "Qm" + rootHex.slice(2, 48);
@@ -182,7 +182,7 @@ export function SubmitTab({
             submissionId = parsed.args.submissionId;
             break;
           }
-        } catch (_) {}
+        } catch (_) { }
       }
 
       const finalSubId =
@@ -581,7 +581,7 @@ export function SubmitTab({
                     leafCount === 1
                       ? svgWidth / 2
                       : svgPaddingX +
-                        idx * ((svgWidth - svgPaddingX * 2) / Math.max(1, leafCount - 1));
+                      idx * ((svgWidth - svgPaddingX * 2) / Math.max(1, leafCount - 1));
                   return { ...node, x, y: leafY };
                 });
                 coordsByLevel[0] = leafCoords;
@@ -743,20 +743,20 @@ export function SubmitTab({
                             const strokeColor = isRoot
                               ? "#10b981"
                               : isLeaf
-                              ? "#06b6d4"
-                              : isLeft
-                              ? "#38bdf8"
-                              : "#c084fc";
+                                ? "#06b6d4"
+                                : isLeft
+                                  ? "#38bdf8"
+                                  : "#c084fc";
                             const fillColor = isRoot
                               ? "rgba(16, 185, 129, 0.22)"
                               : isLeaf
-                              ? "rgba(6, 182, 212, 0.16)"
-                              : "rgba(30, 41, 59, 0.95)";
+                                ? "rgba(6, 182, 212, 0.16)"
+                                : "rgba(30, 41, 59, 0.95)";
                             const shortTag = isRoot
                               ? "ROOT"
                               : isLeaf
-                              ? `C#${node.index + 1}`
-                              : `L${lvl}·${isLeft ? "L" : "R"}`;
+                                ? `C#${node.index + 1}`
+                                : `L${lvl}·${isLeft ? "L" : "R"}`;
                             const shortHash = `${node.hashHex.slice(0, 6)}..${node.hashHex.slice(-4)}`;
 
                             return (
@@ -832,8 +832,8 @@ export function SubmitTab({
             {!isWhistleblower
               ? "🔒 Disabled — Switch to Whistleblower Role to Submit"
               : loading
-              ? step
-              : `Encrypt (AES-256-GCM), Compute Merkle Root & Submit for Bounty #${targetBountyId}`}
+                ? step
+                : `Encrypt (AES-256-GCM), Compute Merkle Root & Submit for Bounty #${targetBountyId}`}
           </button>
         </form>
 
