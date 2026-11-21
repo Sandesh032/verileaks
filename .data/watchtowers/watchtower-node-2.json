@@ -1,15 +1,15 @@
 {
   "checkpoint": {
     "lastProcessedBlock": 101,
-    "updatedAt": "2026-11-20T03:27:32.865Z"
+    "updatedAt": "2026-11-20T04:59:10.473Z"
   },
   "processedEvents": {
-    "31337:0x1fdc347aa5f37a788c26e9d67d4d1929c348e3095cc5d39260720bfc07bec908:0": {
+    "31337:0xb33fe5303e965ef1a7d5ddbed3d0dc2f258ec3b862bfd693a560e3495762706c:0": {
       "contractName": "SubmissionRegistry",
       "eventName": "SubmissionRegistered",
       "blockNumber": 101,
-      "txHash": "0x1fdc347aa5f37a788c26e9d67d4d1929c348e3095cc5d39260720bfc07bec908",
-      "recordedAt": "2026-11-20T03:27:32.786Z"
+      "txHash": "0xb33fe5303e965ef1a7d5ddbed3d0dc2f258ec3b862bfd693a560e3495762706c",
+      "recordedAt": "2026-11-20T04:59:10.399Z"
     }
   },
   "executedActions": {},
@@ -20,39 +20,46 @@
       "submitter": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
       "ipfsCid": "Qm0fc291d0196439aad50bf0a8d1563198c260943c897d",
       "merkleRoot": "0xa8a38eb1ab21709b844a9f160bd64b0baf6a887291659b7766f598dd5eac9e1f",
-      "timestamp": 1795144651,
+      "timestamp": 1795150149,
       "submissionId": "0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c",
-      "updatedAt": "2026-11-20T03:27:32.783Z"
+      "updatedAt": "2026-11-20T04:59:10.399Z"
     }
   },
   "alerts": [
     {
-      "id": "1795145252784-6q8io",
+      "id": "1795151026695-v49d1",
+      "level": "ERROR",
+      "message": "[watchtower-node-2] 💥 SIMULATED NODE CRASH: watchtower-node-2 halted at block checkpoint 101! Standby watchtowers must take over.",
+      "details": {},
+      "timestamp": "2026-11-20T05:03:46.695Z"
+    },
+    {
+      "id": "1795150750399-4iybm",
       "level": "INFO",
       "message": "[watchtower-node-2] Observed SubmissionRegistered: 0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c",
       "details": {},
-      "timestamp": "2026-11-20T03:27:32.785Z"
+      "timestamp": "2026-11-20T04:59:10.399Z"
     },
     {
-      "id": "1795145252753-tyqp7",
+      "id": "1795150750379-cv8km",
       "level": "INFO",
       "message": "[watchtower-node-2] Health monitoring HTTP server listening on http://127.0.0.1:9102",
       "details": {},
-      "timestamp": "2026-11-20T03:27:32.753Z"
+      "timestamp": "2026-11-20T04:59:10.379Z"
     },
     {
-      "id": "1795145252746-mdwei",
+      "id": "1795150750376-vwpnm",
       "level": "INFO",
       "message": "[watchtower-node-2] Watchtower started with checkpoint at block 0",
       "details": {},
-      "timestamp": "2026-11-20T03:27:32.746Z"
+      "timestamp": "2026-11-20T04:59:10.376Z"
     },
     {
-      "id": "1795145252745-tn18n",
+      "id": "1795150750375-bo4ud",
       "level": "INFO",
       "message": "[watchtower-node-2] Connected to network chainId: 31337",
       "details": {},
-      "timestamp": "2026-11-20T03:27:32.745Z"
+      "timestamp": "2026-11-20T04:59:10.375Z"
     }
   ]
 }

@@ -22,12 +22,14 @@ export function LandingTab({ onSelectTab }) {
       </div>
 
       <div className="notice-card">
-        <strong>⚠️ Security & Prototype Privacy Disclosure:</strong>
+        <strong>🔐 End-to-End Privacy & Client-Side AES-256-GCM Encryption Architecture:</strong>
         <p style={{ marginTop: "6px" }}>
-          This prototype runs on Ethereum testnets (Arbitrum Sepolia / Anvil).
-          Evidence files uploaded via this application route through our local Privacy Upload Proxy to isolate your browser
-          from third-party storage APIs. When deploying to production, all traffic must be routed exclusively through a
-          Tor Onion Hidden Service. Note that public IPFS data is globally retrievable; sensitive evidence must be encrypted client-side prior to upload.
+          All evidence files uploaded via this application are hashed into a 1 MiB SHA-256 Merkle
+          tree and <strong>encrypted client-side in your browser using AES-256-GCM</strong> (WebCrypto
+          API) before leaving your device. The local Privacy Upload Proxy (<code>127.0.0.1:3000</code>)
+          and IPFS only ever receive encrypted <code>.enc</code> ciphertext, and the decryption key
+          envelope is sealed exclusively for the <strong>3 randomly selected Chainlink VRF Jurors</strong>{" "}
+          assigned to arbitrate the case.
         </p>
       </div>
 

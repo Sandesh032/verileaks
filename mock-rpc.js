@@ -67,7 +67,24 @@ function selectRandomJurors(pool, k = 3) {
   return pool.filter((a) => chosenSet.has(a.toLowerCase()));
 }
 
-const evidenceFiles = new Map(); // submissionIdLower -> { fileName, mimeType, fileBase64, textPreview, ipfsCid, merkleRoot }
+const evidenceFiles = new Map(); // submissionIdLower -> { fileName, encryptedFileName, mimeType, isEncrypted, algorithm, ciphertextBase64, ciphertextPreviewHex, aesKeyHex, ivHex, ipfsCid, merkleRoot }
+
+// Helper: Encrypt a Buffer with AES-256-GCM in WebCrypto-compatible format (ciphertext || 16-byte authTag)
+function encryptBufferAesGcm(plainBuf) {
+  const key = crypto.randomBytes(32);
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const enc = Buffer.concat([cipher.update(plainBuf), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  const combined = Buffer.concat([enc, tag]);
+  return {
+    ciphertextBase64: combined.toString("base64"),
+    ciphertextPreviewHex: "0x" + combined.subarray(0, 32).toString("hex") + "...",
+    aesKeyHex: "0x" + key.toString("hex"),
+    ivHex: "0x" + iv.toString("hex"),
+    algorithm: "AES-256-GCM"
+  };
+}
 
 let blockNumber = 100;
 let timeOffsetSec = 0;
@@ -197,11 +214,13 @@ function resetAllState(includeSampleBounties = false) {
     "Subject: Unauthorized Off-Ledger Fund Transfers & Compliance Violations\n" +
     "Submitter: Anonymous Whistleblower\n" +
     "Details: Internal audit logs demonstrating falsified quarterly reserve attestations.\n";
+  const defaultEnc = encryptBufferAesGcm(Buffer.from(defaultContent, "utf8"));
   evidenceFiles.set(defaultSubId.toLowerCase(), {
     fileName: "confidential_audit_leak_2026.txt",
+    encryptedFileName: "confidential_audit_leak_2026.txt.enc",
     mimeType: "text/plain",
-    fileBase64: Buffer.from(defaultContent, "utf8").toString("base64"),
-    textPreview: defaultContent,
+    isEncrypted: true,
+    ...defaultEnc,
     ipfsCid: defaultCid,
     merkleRoot: defaultRoot
   });
@@ -1023,9 +1042,14 @@ function handleRpcMethod(method, params = []) {
       if (fileMeta && submissionId) {
         evidenceFiles.set(submissionId.toLowerCase(), {
           fileName: fileMeta.fileName || "whistleblower_evidence.bin",
+          encryptedFileName: fileMeta.encryptedFileName || `${fileMeta.fileName || "evidence"}.enc`,
           mimeType: fileMeta.mimeType || "application/octet-stream",
-          fileBase64: fileMeta.fileBase64 || "",
-          textPreview: fileMeta.textPreview || "",
+          isEncrypted: true,
+          algorithm: fileMeta.algorithm || "AES-256-GCM",
+          ciphertextBase64: fileMeta.ciphertextBase64 || "",
+          ciphertextPreviewHex: fileMeta.ciphertextPreviewHex || "",
+          aesKeyHex: fileMeta.aesKeyHex || "",
+          ivHex: fileMeta.ivHex || "",
           ipfsCid: cid || "",
           merkleRoot: merkleRoot || ""
         });
@@ -1153,29 +1177,29 @@ function handleRpcMethod(method, params = []) {
       if (!isSelectedJuror) {
         return {
           authorized: false,
-          error: `Access Denied: Wallet ${callerAddr} was NOT selected by Chainlink VRF for Dispute #${dId}. Only the 3 VRF-selected jurors for this case can download or inspect the confidential evidence.`
+          error: `Access Denied: Wallet ${callerAddr} was NOT selected by Chainlink VRF for Dispute #${dId}. Only the 3 VRF-selected jurors for this case can download the encrypted .enc file or unseal the AES-256-GCM decryption key.`
         };
       }
       const subLower = (d.submissionId || "").toLowerCase();
       const subObj = submissions.get(subLower);
-      const fileObj = evidenceFiles.get(subLower) || {
-        fileName: "confidential_audit_leak_2026.txt",
-        mimeType: "text/plain",
-        fileBase64: Buffer.from(
-          "VERILEAKS CONFIDENTIAL EVIDENCE REPORT #2026-A\n" +
-            "==============================================\n" +
-            "Subject: Unauthorized Off-Ledger Fund Transfers & Compliance Violations\n" +
-            "Details: Internal audit logs demonstrating falsified quarterly reserve attestations.\n",
-          "utf8"
-        ).toString("base64"),
-        textPreview:
+      let fileObj = evidenceFiles.get(subLower);
+      if (!fileObj) {
+        const fallbackText =
           "VERILEAKS CONFIDENTIAL EVIDENCE REPORT #2026-A\n" +
           "==============================================\n" +
           "Subject: Unauthorized Off-Ledger Fund Transfers & Compliance Violations\n" +
-          "Details: Internal audit logs demonstrating falsified quarterly reserve attestations.\n",
-        ipfsCid: subObj?.ipfsCid || "Qm0fc291d0196439aad50bf0a8d1563198c260943c897d",
-        merkleRoot: subObj?.merkleRoot || "0xa8a38eb1ab21709b844a9f160bd64b0baf6a887291659b7766f598dd5eac9e1f"
-      };
+          "Details: Internal audit logs demonstrating falsified quarterly reserve attestations.\n";
+        const fallbackEnc = encryptBufferAesGcm(Buffer.from(fallbackText, "utf8"));
+        fileObj = {
+          fileName: "confidential_audit_leak_2026.txt",
+          encryptedFileName: "confidential_audit_leak_2026.txt.enc",
+          mimeType: "text/plain",
+          isEncrypted: true,
+          ...fallbackEnc,
+          ipfsCid: subObj?.ipfsCid || "Qm0fc291d0196439aad50bf0a8d1563198c260943c897d",
+          merkleRoot: subObj?.merkleRoot || "0xa8a38eb1ab21709b844a9f160bd64b0baf6a887291659b7766f598dd5eac9e1f"
+        };
+      }
       return {
         authorized: true,
         disputeId: dId,

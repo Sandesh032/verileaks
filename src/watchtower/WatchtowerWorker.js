@@ -40,6 +40,7 @@ export class WatchtowerWorker {
 
     this.isRunning = false;
     this.isSyncing = false;
+    this.isCrashed = false;
     this.timer = null;
     this.server = null;
     this.startTime = Date.now();
@@ -129,7 +130,7 @@ export class WatchtowerWorker {
    * Process a single sync cycle from checkpoint to head.
    */
   async syncOnce() {
-    if (this.isSyncing) return;
+    if (this.isSyncing || this.isCrashed) return;
     this.isSyncing = true;
 
     try {
@@ -314,12 +315,25 @@ export class WatchtowerWorker {
 
   async _executeActionWithPreflight(action, actionKey) {
     try {
+      if (this.isCrashed) return;
+
+      // If this is Standby Node 2 in a live HTTP cluster, wait 800ms before preflight so Active Node 1
+      // executes first when healthy, and Standby Node 2 seamlessly takes over when Node 1 is crashed!
+      if (this.nodeId === "watchtower-node-2" && this.httpPort) {
+        await new Promise((r) => setTimeout(r, 800));
+        if (this.isCrashed) return;
+      }
+
       // 1. On-chain preflight check to ensure action is still valid and not already executed
       if (action.type === "FINALIZE_DISPUTE") {
         const res = await this.contracts.voting.resultOf(action.targetId);
         // res.status: 3 = FINALIZED, 4 = CANCELLED
         if (Number(res[0]) === VotingStatus.FINALIZED || Number(res[0]) === VotingStatus.CANCELLED) {
           this.store.recordAction(actionKey, { skipped: true, reason: "Already resolved on-chain" });
+          this._log(
+            "INFO",
+            `[Preflight Check] ${action.type} (#${action.targetId}) already executed on-chain by peer watchtower. Safely skipped duplicate tx.`
+          );
           return;
         }
       } else if (action.type === "CANCEL_TIMEOUT_DISPUTE") {
@@ -332,6 +346,10 @@ export class WatchtowerWorker {
         const b = await this.contracts.arbitratedBounty.getBounty(action.targetId);
         if (Number(b.status) !== BountyStatus.DISPUTED) {
           this.store.recordAction(actionKey, { skipped: true, reason: "Bounty is no longer DISPUTED" });
+          this._log(
+            "INFO",
+            `[Preflight Check] ${action.type} (#${action.targetId}) already settled on-chain by peer watchtower. Safely skipped duplicate tx.`
+          );
           return;
         }
       } else if (action.type === "REFUND_BOUNTY") {
@@ -343,7 +361,11 @@ export class WatchtowerWorker {
       }
 
       // 2. Submit on-chain transaction
-      this._log("ACTION", `Executing ${action.type} -> ${action.contractName}.${action.method}(${action.args.join(", ")})`);
+      const roleTag = this.nodeId === "watchtower-node-2" ? " [STANDBY FAILOVER]" : "";
+      this._log(
+        "ACTION",
+        `Executing ${action.type}${roleTag} -> ${action.contractName}.${action.method}(${action.args.join(", ")})`
+      );
 
       const targetContract =
         action.contractName === "SchellingVoting"
@@ -376,17 +398,25 @@ export class WatchtowerWorker {
     this.server = http.createServer((req, res) => {
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
 
       if (req.url === "/health") {
         res.writeHead(200);
         res.end(
           JSON.stringify({
-            status: "ok",
+            status: this.isCrashed ? "crashed" : "ok",
+            crashed: this.isCrashed,
             nodeId: this.nodeId,
             uptime: Math.floor((Date.now() - this.startTime) / 1000),
             checkpoint: this.store.getCheckpoint(),
             isSyncing: this.isSyncing,
-            lastSyncTime: this.lastSyncTime
+            lastSyncTime: this.isCrashed ? "CRASHED / OFFLINE" : this.lastSyncTime
           })
         );
       } else if (req.url === "/status") {
@@ -394,16 +424,35 @@ export class WatchtowerWorker {
         res.end(
           JSON.stringify({
             nodeId: this.nodeId,
+            crashed: this.isCrashed,
             chainId: this.chainId,
             checkpoint: this.store.getCheckpoint(),
             disputes: this.store.getAllDisputes().length,
             bounties: this.store.getAllBounties().length,
-            lastSyncTime: this.lastSyncTime
+            lastSyncTime: this.isCrashed ? "CRASHED / OFFLINE" : this.lastSyncTime
           })
         );
       } else if (req.url === "/alerts") {
         res.writeHead(200);
         res.end(JSON.stringify(this.store.getAlerts(50)));
+      } else if (req.url === "/simulate-crash") {
+        this.isCrashed = true;
+        this._log(
+          "ERROR",
+          `💥 SIMULATED NODE CRASH: ${this.nodeId} halted at block checkpoint ${this.store.getCheckpoint()}! Standby watchtowers must take over.`
+        );
+        res.writeHead(200);
+        res.end(JSON.stringify({ ok: true, crashed: true, checkpoint: this.store.getCheckpoint() }));
+      } else if (req.url === "/simulate-recover") {
+        const savedCheckpoint = this.store.getCheckpoint();
+        this.isCrashed = false;
+        this._log(
+          "INFO",
+          `🔄 NODE RECOVERED FROM CRASH: ${this.nodeId} resuming block scan from persisted atomic checkpoint #${savedCheckpoint}...`
+        );
+        this.syncOnce().catch(() => {});
+        res.writeHead(200);
+        res.end(JSON.stringify({ ok: true, crashed: false, checkpoint: savedCheckpoint }));
       } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: "Not found" }));

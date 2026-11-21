@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import { ABIS } from "../contracts/abis.js";
 import { generateClientMerkleTree } from "../utils/merkle.js";
+import { decryptEvidenceBuffer } from "../utils/encryption.js";
 
 const VOTING_STATUS = [
   "NONE",
@@ -70,11 +71,14 @@ export function ArbitrationTab({
   // Track which jurors have downloaded & verified the evidence file for a dispute
   // Key: `${disputeId}:${jurorAddressLower}` -> { fileName, textPreview, computedRoot, onChainRoot, integrityMatch, ipfsCid }
   const [verifiedEvidenceByJuror, setVerifiedEvidenceByJuror] = useState({});
+  const [allWatchtowersDown, setAllWatchtowersDown] = useState(false);
 
   // Per-juror saved salts & vote choices
   const [savedVotes, setSavedVotes] = useState({});
   const [voteChoice, setVoteChoice] = useState("1"); // 1 = REAL, 2 = FAKE
   const [salt, setSalt] = useState("");
+
+  const isWhistleblower = selectedWalletId === "whistleblower";
 
   const isJurorRole =
     selectedWalletId === "juror1" ||
@@ -189,8 +193,20 @@ export function ArbitrationTab({
   }, [fetchDisputeDetails, disputeId, currentAccount]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       fetchDisputeDetails(disputeId, true);
+      // Check if both active/standby executor watchtowers (9101 and 9102) are crashed/offline
+      try {
+        const [r1, r2] = await Promise.all([
+          fetch("http://127.0.0.1:9101/health", { signal: AbortSignal.timeout(800) })
+            .then((r) => r.json())
+            .catch(() => ({ crashed: true })),
+          fetch("http://127.0.0.1:9102/health", { signal: AbortSignal.timeout(800) })
+            .then((r) => r.json())
+            .catch(() => ({ crashed: true }))
+        ]);
+        setAllWatchtowersDown(Boolean(r1?.crashed && r2?.crashed));
+      } catch (_) {}
     }, 1000);
     return () => clearInterval(interval);
   }, [fetchDisputeDetails, disputeId]);
@@ -236,12 +252,12 @@ export function ArbitrationTab({
     onAlert("Generated new 32-byte cryptographic salt (auto-saved for Reveal Phase)!", "info");
   };
 
-  // Step 1 for Selected VRF Jurors: Download Confidential Evidence & Verify Merkle Root
+  // Step 1 for Selected VRF Jurors: Download Encrypted .enc File, Decrypt Client-Side (AES-256-GCM) & Verify Merkle Root
   const handleDownloadAndVerifyEvidence = async () => {
     if (!provider || !currentAccount) return;
     if (!isSelectedVrfJuror) {
       onAlert(
-        `Access Denied: ${currentRoleLabel} was NOT selected by Chainlink VRF for Dispute #${disputeId}! Only the 3 selected jurors can download the evidence file.`,
+        `Access Denied: ${currentRoleLabel} was NOT selected by Chainlink VRF for Dispute #${disputeId}! Only the 3 selected jurors can download or decrypt the evidence file.`,
         "error"
       );
       return;
@@ -254,30 +270,39 @@ export function ArbitrationTab({
         currentAccount
       ]);
       if (!res || !res.authorized) {
-        onAlert(res?.error || "Unauthorized to download evidence for this dispute.", "error");
+        onAlert(res?.error || "Unauthorized to download or decrypt evidence for this dispute.", "error");
         return;
       }
 
-      // Decode base64 file bytes
-      const binaryStr = window.atob(res.fileBase64);
-      const bytes = new Uint8Array(binaryStr.length);
-      for (let i = 0; i < binaryStr.length; i++) {
-        bytes[i] = binaryStr.charCodeAt(i);
-      }
+      // Decrypt the AES-256-GCM ciphertext client-side in the juror's browser!
+      const decryptedBytes = await decryptEvidenceBuffer(
+        res.ciphertextBase64,
+        res.aesKeyHex,
+        res.ivHex
+      );
 
-      // Trigger real browser file download so the juror can open/inspect it locally
-      const blob = new Blob([bytes], { type: res.mimeType || "application/octet-stream" });
+      let textPreview = "";
+      try {
+        textPreview = new TextDecoder("utf-8", { fatal: false }).decode(
+          decryptedBytes.slice(0, 2048)
+        );
+      } catch (_) {}
+
+      // Trigger real browser download of the decrypted file so the juror can inspect it locally
+      const blob = new Blob([decryptedBytes], {
+        type: res.mimeType || "application/octet-stream"
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = res.fileName || `dispute_${disputeId}_evidence.txt`;
+      a.download = res.fileName || `dispute_${disputeId}_decrypted_evidence.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Recompute 1 MiB SHA-256 Merkle root client-side on downloaded file bytes
-      const { rootHex, chunkCount } = await generateClientMerkleTree(bytes.buffer);
+      // Recompute 1 MiB SHA-256 Merkle root client-side on the decrypted file bytes
+      const { rootHex, chunkCount } = await generateClientMerkleTree(decryptedBytes.buffer);
       const onChainRoot = res.merkleRoot || rootHex;
       const integrityMatch = rootHex.toLowerCase() === onChainRoot.toLowerCase();
 
@@ -285,10 +310,14 @@ export function ArbitrationTab({
         ...prev,
         [evidenceVerificationKey]: {
           fileName: res.fileName,
-          fileSize: bytes.byteLength,
+          encryptedFileName: res.encryptedFileName || `${res.fileName}.enc`,
+          algorithm: res.algorithm || "AES-256-GCM",
+          ivHex: res.ivHex,
+          ciphertextPreviewHex: res.ciphertextPreviewHex,
+          fileSize: decryptedBytes.byteLength,
           chunkCount,
           ipfsCid: res.ipfsCid,
-          textPreview: res.textPreview,
+          textPreview,
           computedRoot: rootHex,
           onChainRoot,
           integrityMatch
@@ -296,13 +325,13 @@ export function ArbitrationTab({
       }));
 
       onAlert(
-        `Evidence "${res.fileName}" downloaded & Merkle root verified (${
+        `Encrypted "${res.encryptedFileName}" downloaded, decrypted client-side with AES-256-GCM, and Merkle root verified (${
           integrityMatch ? "✅ 100% Authentic Match" : "❌ Hash Mismatch"
         })! Voting is now unlocked for ${currentRoleLabel}.`,
         "success"
       );
     } catch (err) {
-      onAlert(err.message || "Failed to download and verify evidence", "error");
+      onAlert(err.message || "Failed to download, decrypt, and verify evidence", "error");
     } finally {
       setLoading(false);
     }
@@ -397,6 +426,49 @@ export function ArbitrationTab({
       );
     } catch (err) {
       onAlert(err.message || "Vote reveal failed", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Emergency Permissionless Self-Settlement Fallback when ALL Watchtower Executors are crashed/offline
+  const handleEmergencySelfSettlement = async () => {
+    if (!signer || !disputeInfo) return;
+    if (!isWhistleblower && !isSelectedVrfJuror) {
+      return onAlert(
+        "Emergency Self-Settlement can only be triggered by the Whistleblower or a VRF-Selected Juror!",
+        "error"
+      );
+    }
+    try {
+      setLoading(true);
+      const votingContract = new ethers.Contract(
+        contractAddresses.voting,
+        ABIS.SchellingVoting,
+        signer
+      );
+      const bountyContract = new ethers.Contract(
+        contractAddresses.arbitratedBounty,
+        ABIS.ArbitratedBounty,
+        signer
+      );
+
+      const finTx = await votingContract.finalize(disputeId);
+      await finTx.wait(1);
+
+      if (disputeInfo.bountyId > 0) {
+        const setTx = await bountyContract.settle(disputeInfo.bountyId);
+        await setTx.wait(1);
+      }
+
+      await fetchDisputeDetails(disputeId, true);
+      if (onBalanceChange) onBalanceChange();
+      onAlert(
+        `Emergency Permissionless Settlement executed by ${currentRoleLabel}! Dispute #${disputeId} finalized, stakes settled, and Bounty #${disputeInfo.bountyId} credited to winner.`,
+        "success"
+      );
+    } catch (err) {
+      onAlert(err.message || "Emergency settlement failed", "error");
     } finally {
       setLoading(false);
     }
@@ -594,11 +666,11 @@ export function ArbitrationTab({
                     marginBottom: "8px"
                   }}
                 >
-                  <strong>📄 Step 1: Confidential Evidence File Access</strong>
+                  <strong>🔐 Step 1: Encrypted Evidence Download & AES-256-GCM Decryption</strong>
                   <span
                     className={`badge ${isSelectedVrfJuror ? "badge-success" : "badge-danger"}`}
                   >
-                    {isSelectedVrfJuror ? "✅ VRF Juror Authorized" : "🔒 Access Denied"}
+                    {isSelectedVrfJuror ? "✅ VRF Key Unsealed" : "🔒 Key & File Denied"}
                   </span>
                 </div>
 
@@ -606,14 +678,17 @@ export function ArbitrationTab({
                   <div style={{ fontSize: "0.83rem", color: "#fca5a5" }}>
                     🚫 <strong>Unauthorized Wallet ({currentRoleLabel}):</strong> This account was{" "}
                     <strong>NOT</strong> selected among the 3 random Chainlink VRF jurors for
-                    Dispute #{disputeInfo.disputeId}. Unselected jurors and non-jurors are blocked
-                    from downloading the whistleblower's confidential document.
+                    Dispute #{disputeInfo.disputeId}. Unselected jurors and non-jurors cannot
+                    download the encrypted <code>.enc</code> payload or unseal the{" "}
+                    <code>AES-256-GCM</code> decryption key.
                   </div>
                 ) : (
                   <>
                     <p style={{ fontSize: "0.83rem", color: "var(--text-muted)", marginBottom: "10px" }}>
-                      As one of the 3 VRF-selected jurors, download the whistleblower's file and
-                      verify its SHA-256 Merkle tree against the on-chain root before voting.
+                      As one of the 3 VRF-selected jurors, your address is authorized to fetch the
+                      encrypted <code>.enc</code> payload from IPFS, unseal the{" "}
+                      <code>AES-256-GCM</code> key envelope, decrypt the file client-side in your
+                      browser, and verify its SHA-256 Merkle root.
                     </p>
                     <button
                       type="button"
@@ -623,8 +698,8 @@ export function ArbitrationTab({
                       disabled={loading}
                     >
                       {activeJurorEvidence
-                        ? `✅ Re-Download & Verify Evidence (${activeJurorEvidence.fileName})`
-                        : "⬇️ Step 1: Download Confidential Evidence & Verify Merkle Root"}
+                        ? `✅ Re-Download & Decrypt Evidence (${activeJurorEvidence.fileName})`
+                        : "⬇️ Step 1: Download .enc File, Decrypt Client-Side (AES-256-GCM) & Verify Merkle Root"}
                     </button>
 
                     {activeJurorEvidence && (
@@ -639,16 +714,17 @@ export function ArbitrationTab({
                         }}
                       >
                         <div style={{ color: "var(--success)", fontWeight: 700, marginBottom: "6px" }}>
-                          ✅ Cryptographic Merkle Integrity Match (0 Bytes Tampered)
+                          ✅ AES-256-GCM Decryption & Merkle Integrity Verified (0 Bytes Tampered)
                         </div>
                         <div>
-                          <strong>File:</strong> {activeJurorEvidence.fileName} (
-                          {activeJurorEvidence.fileSize} bytes, {activeJurorEvidence.chunkCount}{" "}
-                          chunk)
+                          <strong>Encrypted IPFS Payload:</strong>{" "}
+                          <code>{activeJurorEvidence.encryptedFileName}</code> →{" "}
+                          <strong>Decrypted File:</strong> <code>{activeJurorEvidence.fileName}</code>{" "}
+                          ({activeJurorEvidence.fileSize} bytes)
                         </div>
                         <div>
-                          <strong>IPFS CID:</strong>{" "}
-                          <code className="mono">{activeJurorEvidence.ipfsCid}</code>
+                          <strong>Cipher & IV:</strong> <code>{activeJurorEvidence.algorithm}</code>{" "}
+                          (IV: <code className="mono">{activeJurorEvidence.ivHex}</code>)
                         </div>
                         <div>
                           <strong>Computed SHA-256 Merkle Root:</strong>{" "}
@@ -686,9 +762,9 @@ export function ArbitrationTab({
                 )}
               </div>
 
-              {/* Automated Watchtower Status & Navigation Controls */}
+              {/* Automated Watchtower Status & Emergency Fallback Controls */}
               <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                {disputeInfo.statusNum === 2 && allRevealed && (
+                {disputeInfo.statusNum === 2 && allRevealed && !allWatchtowersDown && (
                   <div
                     className="notice-card"
                     style={{
@@ -698,9 +774,45 @@ export function ArbitrationTab({
                       fontSize: "0.85rem"
                     }}
                   >
-                    ⚡ <strong>All 3 VRF Jurors Revealed!</strong> Watchtower Node 1 is
+                    ⚡ <strong>All 3 VRF Jurors Revealed!</strong> Watchtower Cluster is
                     automatically executing <code>SchellingVoting.finalize({disputeInfo.disputeId})</code>{" "}
                     and <code>ArbitratedBounty.settle({disputeInfo.bountyId})</code>...
+                  </div>
+                )}
+
+                {disputeInfo.statusNum === 2 && allRevealed && allWatchtowersDown && (
+                  <div
+                    className="notice-card"
+                    style={{
+                      marginBottom: 0,
+                      borderColor: "var(--danger)",
+                      background: "rgba(239, 68, 68, 0.12)",
+                      fontSize: "0.85rem"
+                    }}
+                  >
+                    <strong style={{ color: "var(--danger)" }}>
+                      🚨 All Automated Watchtower Executors Are Offline (Crashed)!
+                    </strong>
+                    <div style={{ marginTop: "6px", color: "#e2e8f0" }}>
+                      Both Primary Watchtower 1 and Standby Watchtower 2 are currently crashed.
+                      However, the protocol <strong>never stalls</strong> and the Funder{" "}
+                      <strong>cannot steal the refund</strong> while a dispute is active: because{" "}
+                      <code>finalize()</code> and <code>settle()</code> are permissionless and
+                      deterministic on-chain, either a Watchtower can be recovered in Tab 5{" "}
+                      <strong>OR</strong> the <strong>Whistleblower / Selected Juror</strong> can
+                      execute emergency self-settlement directly below:
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ width: "100%", marginTop: "10px", padding: "11px" }}
+                      onClick={handleEmergencySelfSettlement}
+                      disabled={loading || (!isWhistleblower && !isSelectedVrfJuror)}
+                    >
+                      {!isWhistleblower && !isSelectedVrfJuror
+                        ? "🔒 Switch to Whistleblower or a Selected VRF Juror for Emergency Settlement"
+                        : `🚨 Emergency Fallback: Execute Permissionless Finalize & Settle (${currentRoleLabel})`}
+                    </button>
                   </div>
                 )}
 
