@@ -7,6 +7,7 @@ import { BountyTab } from "./components/BountyTab.jsx";
 import { StakingTab } from "./components/StakingTab.jsx";
 import { ArbitrationTab } from "./components/ArbitrationTab.jsx";
 import { WatchtowerTab } from "./components/WatchtowerTab.jsx";
+import { BlockchainExplorerTab } from "./components/BlockchainExplorerTab.jsx";
 
 export const DEMO_WALLETS = [
   {
@@ -293,11 +294,12 @@ export function App() {
       <nav className="tabs-nav">
         {[
           { id: "overview", label: "Protocol Overview" },
-          { id: "bounties", label: "1. Bounties & Escrow (Funder)" },
-          { id: "submit", label: "2. Submit Evidence (Whistleblower)" },
+          { id: "bounties", label: "1. Bounties & Escrow" },
+          { id: "submit", label: "2. Submit Evidence" },
           { id: "staking", label: "3. Juror Staking" },
           { id: "arbitration", label: "4. Arbitration & Voting" },
-          { id: "watchtowers", label: "5. Watchtower Cluster" }
+          { id: "watchtowers", label: "5. Watchtower Cluster" },
+          { id: "explorer", label: "6. Live Blockchain Explorer ⛓️" }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -427,6 +429,9 @@ export function App() {
           />
         )}
         {activeTab === "watchtowers" && <WatchtowerTab />}
+        {activeTab === "explorer" && (
+          <BlockchainExplorerTab provider={provider} onAlert={triggerAlert} />
+        )}
       </main>
     </div>
   );

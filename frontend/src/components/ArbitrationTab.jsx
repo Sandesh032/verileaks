@@ -126,7 +126,7 @@ export function ArbitrationTab({
         let selectedJurors = [];
         try {
           selectedJurors = await votingContract.jurorsOf(idToFetch);
-        } catch (_) {}
+        } catch (_) { }
 
         const selectedSet = new Set(selectedJurors.map((a) => a.toLowerCase()));
         const voteDetailsMap = summary?.disputeVotes || {};
@@ -206,7 +206,7 @@ export function ArbitrationTab({
             .catch(() => ({ crashed: true }))
         ]);
         setAllWatchtowersDown(Boolean(r1?.crashed && r2?.crashed));
-      } catch (_) {}
+      } catch (_) { }
     }, 1000);
     return () => clearInterval(interval);
   }, [fetchDisputeDetails, disputeId]);
@@ -286,7 +286,7 @@ export function ArbitrationTab({
         textPreview = new TextDecoder("utf-8", { fatal: false }).decode(
           decryptedBytes.slice(0, 2048)
         );
-      } catch (_) {}
+      } catch (_) { }
 
       // Trigger real browser download of the decrypted file so the juror can inspect it locally
       const blob = new Blob([decryptedBytes], {
@@ -302,7 +302,7 @@ export function ArbitrationTab({
       URL.revokeObjectURL(url);
 
       // Recompute 1 MiB SHA-256 Merkle root client-side on the decrypted file bytes
-      const { rootHex, chunkCount } = await generateClientMerkleTree(decryptedBytes.buffer);
+      const { rootHex, chunkCount, chunkDetails } = await generateClientMerkleTree(decryptedBytes.buffer);
       const onChainRoot = res.merkleRoot || rootHex;
       const integrityMatch = rootHex.toLowerCase() === onChainRoot.toLowerCase();
 
@@ -316,6 +316,7 @@ export function ArbitrationTab({
           ciphertextPreviewHex: res.ciphertextPreviewHex,
           fileSize: decryptedBytes.byteLength,
           chunkCount,
+          chunkDetails,
           ipfsCid: res.ipfsCid,
           textPreview,
           computedRoot: rootHex,
@@ -325,8 +326,7 @@ export function ArbitrationTab({
       }));
 
       onAlert(
-        `Encrypted "${res.encryptedFileName}" downloaded, decrypted client-side with AES-256-GCM, and Merkle root verified (${
-          integrityMatch ? "✅ 100% Authentic Match" : "❌ Hash Mismatch"
+        `Encrypted "${res.encryptedFileName}" downloaded, decrypted client-side with AES-256-GCM, and Merkle root verified (${integrityMatch ? "✅ 100% Authentic Match" : "❌ Hash Mismatch"
         })! Voting is now unlocked for ${currentRoleLabel}.`,
         "success"
       );
@@ -627,13 +627,12 @@ export function ArbitrationTab({
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <strong>Schelling Verdict:</strong>
                 <span
-                  className={`badge ${
-                    disputeInfo.outcomeNum === 1
+                  className={`badge ${disputeInfo.outcomeNum === 1
                       ? "badge-success"
                       : disputeInfo.outcomeNum === 2
-                      ? "badge-danger"
-                      : "badge-warning"
-                  }`}
+                        ? "badge-danger"
+                        : "badge-warning"
+                    }`}
                 >
                   {disputeInfo.outcomeText}
                 </span>
@@ -653,9 +652,8 @@ export function ArbitrationTab({
                   padding: "14px",
                   borderRadius: "var(--radius-md)",
                   background: "rgba(10, 14, 23, 0.65)",
-                  border: `1px solid ${
-                    isSelectedVrfJuror ? "var(--accent-cyan)" : "rgba(239, 68, 68, 0.5)"
-                  }`
+                  border: `1px solid ${isSelectedVrfJuror ? "var(--accent-cyan)" : "rgba(239, 68, 68, 0.5)"
+                    }`
                 }}
               >
                 <div
@@ -720,7 +718,11 @@ export function ArbitrationTab({
                           <strong>Encrypted IPFS Payload:</strong>{" "}
                           <code>{activeJurorEvidence.encryptedFileName}</code> →{" "}
                           <strong>Decrypted File:</strong> <code>{activeJurorEvidence.fileName}</code>{" "}
-                          ({activeJurorEvidence.fileSize} bytes)
+                          ({activeJurorEvidence.fileSize?.toLocaleString()} bytes /{" "}
+                          <strong style={{ color: "var(--accent-cyan)" }}>
+                            {activeJurorEvidence.chunkCount} × 1 MiB Merkle Chunk(s) Verified
+                          </strong>
+                          )
                         </div>
                         <div>
                           <strong>Cipher & IV:</strong> <code>{activeJurorEvidence.algorithm}</code>{" "}
@@ -997,10 +999,10 @@ export function ArbitrationTab({
               {!isSelectedVrfJuror
                 ? `🔒 Unauthorized — ${currentRoleLabel} Not Selected by VRF for Dispute #${disputeId}`
                 : !activeJurorEvidence && !activeJurorRow?.committed
-                ? "🔒 Locked — Complete Step 1 (Download & Verify Evidence) First"
-                : activeJurorRow?.committed
-                ? "✅ Step 2 Complete: Salted Vote Hash Committed"
-                : "Step 2 (Phase 1): Commit Salted Vote Hash"}
+                  ? "🔒 Locked — Complete Step 1 (Download & Verify Evidence) First"
+                  : activeJurorRow?.committed
+                    ? "✅ Step 2 Complete: Salted Vote Hash Committed"
+                    : "Step 2 (Phase 1): Commit Salted Vote Hash"}
             </button>
 
             <button
@@ -1025,10 +1027,10 @@ export function ArbitrationTab({
               {!isSelectedVrfJuror
                 ? `🔒 Unauthorized — ${currentRoleLabel} Not Selected by VRF for Dispute #${disputeId}`
                 : activeJurorRow?.revealed
-                ? "✅ Step 3 Complete: Cleartext Vote Revealed"
-                : !allCommitted
-                ? `🔒 Step 3 (Reveal) Locked — Waiting for All 3 Selected Jurors to Commit (${committedCount}/3)`
-                : "Step 3 (Phase 2): Reveal Cleartext Vote & Salt"}
+                  ? "✅ Step 3 Complete: Cleartext Vote Revealed"
+                  : !allCommitted
+                    ? `🔒 Step 3 (Reveal) Locked — Waiting for All 3 Selected Jurors to Commit (${committedCount}/3)`
+                    : "Step 3 (Phase 2): Reveal Cleartext Vote & Salt"}
             </button>
           </div>
         </div>
@@ -1137,8 +1139,8 @@ export function ArbitrationTab({
                         {!r.isSelected
                           ? "—"
                           : pen > 0
-                          ? `-${pen.toFixed(3)} ETH (25% Slashed)`
-                          : "0.000 ETH"}
+                            ? `-${pen.toFixed(3)} ETH (25% Slashed)`
+                            : "0.000 ETH"}
                       </td>
                       <td
                         style={{

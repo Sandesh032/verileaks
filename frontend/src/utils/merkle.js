@@ -49,40 +49,106 @@ export async function hashNode(leftBytes, rightBytes) {
 export async function generateClientMerkleTree(fileArrayBuffer) {
   const chunks = chunkData(fileArrayBuffer);
   let currentLevel = [];
+  let currentNodesMeta = [];
+  const chunkDetails = [];
+  let offset = 0;
 
-  for (const chunk of chunks) {
+  for (let idx = 0; idx < chunks.length; idx++) {
+    const chunk = chunks[idx];
     const leaf = await hashLeaf(chunk);
+    const leafHex = "0x" + bufferToHex(leaf);
     currentLevel.push(leaf);
+    chunkDetails.push({
+      index: idx,
+      byteStart: offset,
+      byteEnd: offset + chunk.byteLength,
+      sizeBytes: chunk.byteLength,
+      leafHashHex: leafHex
+    });
+    currentNodesMeta.push({
+      level: 0,
+      index: idx,
+      label: `Leaf L${idx + 1} (Chunk #${idx + 1})`,
+      hashHex: leafHex,
+      role: idx % 2 === 0 ? "LEFT" : "RIGHT",
+      isLeaf: true,
+      isDuplicateOdd: false,
+      leftChildHash: null,
+      rightChildHash: null,
+      leftChildLabel: null,
+      rightChildLabel: null
+    });
+    offset += chunk.byteLength;
   }
 
-  const leavesHex = currentLevel.map(bufferToHex);
+  const leavesHex = currentLevel.map((l) => "0x" + bufferToHex(l));
+  const treeLevels = [leavesHex];
+  const detailedLevels = [currentNodesMeta];
 
   if (currentLevel.length === 1) {
+    currentNodesMeta[0].role = "ROOT (SINGLE LEAF)";
     return {
       rootHex: "0x" + bufferToHex(currentLevel[0]),
       chunkCount: 1,
-      leavesHex
+      leavesHex,
+      chunkDetails,
+      treeLevels,
+      detailedLevels
     };
   }
 
+  let levelIdx = 1;
   while (currentLevel.length > 1) {
     const nextLevel = [];
+    const nextNodesMeta = [];
     for (let i = 0; i < currentLevel.length; i += 2) {
-      if (i + 1 < currentLevel.length) {
-        const parent = await hashNode(currentLevel[i], currentLevel[i + 1]);
-        nextLevel.push(parent);
-      } else {
-        // Odd node: promoted by hashing with itself
-        const parent = await hashNode(currentLevel[i], currentLevel[i]);
-        nextLevel.push(parent);
-      }
+      const leftNodeMeta = currentNodesMeta[i];
+      const hasRight = i + 1 < currentLevel.length;
+      const rightNodeMeta = hasRight ? currentNodesMeta[i + 1] : currentNodesMeta[i];
+      const parent = hasRight
+        ? await hashNode(currentLevel[i], currentLevel[i + 1])
+        : await hashNode(currentLevel[i], currentLevel[i]);
+      const parentHex = "0x" + bufferToHex(parent);
+      const nodeIdx = Math.floor(i / 2);
+      nextLevel.push(parent);
+      nextNodesMeta.push({
+        level: levelIdx,
+        index: nodeIdx,
+        label:
+          Math.ceil(currentLevel.length / 2) === 1
+            ? "Merkle Root"
+            : `Branch L${levelIdx}-N${nodeIdx + 1}`,
+        hashHex: parentHex,
+        role:
+          Math.ceil(currentLevel.length / 2) === 1
+            ? "MERKLE ROOT"
+            : nodeIdx % 2 === 0
+            ? "LEFT"
+            : "RIGHT",
+        isRoot: Math.ceil(currentLevel.length / 2) === 1,
+        isLeaf: false,
+        isDuplicateOdd: !hasRight,
+        leftChildHash: leftNodeMeta.hashHex,
+        rightChildHash: rightNodeMeta.hashHex,
+        leftChildLabel: leftNodeMeta.label,
+        rightChildLabel: hasRight
+          ? rightNodeMeta.label
+          : `${leftNodeMeta.label} (Duplicated Odd Node)`
+      });
     }
     currentLevel = nextLevel;
+    currentNodesMeta = nextNodesMeta;
+    treeLevels.push(currentLevel.map((n) => "0x" + bufferToHex(n)));
+    detailedLevels.push(currentNodesMeta);
+    levelIdx++;
   }
 
   return {
     rootHex: "0x" + bufferToHex(currentLevel[0]),
     chunkCount: chunks.length,
-    leavesHex
+    leavesHex,
+    chunkDetails,
+    treeLevels,
+    detailedLevels
   };
 }

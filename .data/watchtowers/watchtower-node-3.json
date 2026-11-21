@@ -1,65 +1,477 @@
 {
   "checkpoint": {
-    "lastProcessedBlock": 101,
-    "updatedAt": "2026-11-20T04:59:10.492Z"
+    "lastProcessedBlock": 26,
+    "updatedAt": "2026-11-21T08:18:53.234Z"
   },
   "processedEvents": {
-    "31337:0xb33fe5303e965ef1a7d5ddbed3d0dc2f258ec3b862bfd693a560e3495762706c:0": {
+    "31337:0x3c37cb2d0003ec8a8e24c5bd041b28fcf9de00da28b4a6dbf4d89aab816d81d8:0": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "BountyFunded",
+      "blockNumber": 3,
+      "txHash": "0x3c37cb2d0003ec8a8e24c5bd041b28fcf9de00da28b4a6dbf4d89aab816d81d8",
+      "recordedAt": "2026-11-21T08:00:49.267Z"
+    },
+    "31337:0x55636016f8fc1f5ca7036ec561492d4f03c36d8019cee8fc394a45ad95a939ac:0": {
       "contractName": "SubmissionRegistry",
       "eventName": "SubmissionRegistered",
-      "blockNumber": 101,
-      "txHash": "0xb33fe5303e965ef1a7d5ddbed3d0dc2f258ec3b862bfd693a560e3495762706c",
-      "recordedAt": "2026-11-20T04:59:10.418Z"
+      "blockNumber": 4,
+      "txHash": "0x55636016f8fc1f5ca7036ec561492d4f03c36d8019cee8fc394a45ad95a939ac",
+      "recordedAt": "2026-11-21T08:08:54.109Z"
+    },
+    "31337:0x463af0ec67587a620ca66a070f9b10c0730ec025beb8e2307faa58657db2779d:5": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "DisputeOpened",
+      "blockNumber": 5,
+      "txHash": "0x463af0ec67587a620ca66a070f9b10c0730ec025beb8e2307faa58657db2779d",
+      "recordedAt": "2026-11-21T08:08:54.131Z"
+    },
+    "31337:0x463af0ec67587a620ca66a070f9b10c0730ec025beb8e2307faa58657db2779d:3": {
+      "contractName": "SchellingVoting",
+      "eventName": "DisputeCreated",
+      "blockNumber": 5,
+      "txHash": "0x463af0ec67587a620ca66a070f9b10c0730ec025beb8e2307faa58657db2779d",
+      "recordedAt": "2026-11-21T08:08:54.152Z"
+    },
+    "31337:0x463af0ec67587a620ca66a070f9b10c0730ec025beb8e2307faa58657db2779d:4": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorsSelected",
+      "blockNumber": 5,
+      "txHash": "0x463af0ec67587a620ca66a070f9b10c0730ec025beb8e2307faa58657db2779d",
+      "recordedAt": "2026-11-21T08:08:54.157Z"
+    },
+    "31337:0x4ef0bae5f2e070de58c281b49786d5723b3dfe6a3148a40f9d97168f808a98b3:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteCommitted",
+      "blockNumber": 6,
+      "txHash": "0x4ef0bae5f2e070de58c281b49786d5723b3dfe6a3148a40f9d97168f808a98b3",
+      "recordedAt": "2026-11-21T08:13:04.365Z"
+    },
+    "31337:0x6cfb56686b2f2d74f107282eb18a833ff840492afdc0f509fd164a2d3d3d1720:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteCommitted",
+      "blockNumber": 7,
+      "txHash": "0x6cfb56686b2f2d74f107282eb18a833ff840492afdc0f509fd164a2d3d3d1720",
+      "recordedAt": "2026-11-21T08:13:11.728Z"
+    },
+    "31337:0xfd6b31e6509fc38d84563458a98206cb54d7b37a989a77c4705819c8f05124ba:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteCommitted",
+      "blockNumber": 8,
+      "txHash": "0xfd6b31e6509fc38d84563458a98206cb54d7b37a989a77c4705819c8f05124ba",
+      "recordedAt": "2026-11-21T08:13:17.988Z"
+    },
+    "31337:0x941ee1547ca75847b49ce83a8f584fcf92c6a6373ddef45846a76ee9f1ac3f54:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteRevealed",
+      "blockNumber": 9,
+      "txHash": "0x941ee1547ca75847b49ce83a8f584fcf92c6a6373ddef45846a76ee9f1ac3f54",
+      "recordedAt": "2026-11-21T08:13:17.990Z"
+    },
+    "31337:0x1a02af19a7b75fc8fe0bece57db1c5bd7ad86c657bd48521d472fb27d9d9569f:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteRevealed",
+      "blockNumber": 10,
+      "txHash": "0x1a02af19a7b75fc8fe0bece57db1c5bd7ad86c657bd48521d472fb27d9d9569f",
+      "recordedAt": "2026-11-21T08:13:23.229Z"
+    },
+    "31337:0x14402efc671240ce24392548e5f7b79b1a01c6dbbc3df8eeebe7fffac4de401e:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteRevealed",
+      "blockNumber": 11,
+      "txHash": "0x14402efc671240ce24392548e5f7b79b1a01c6dbbc3df8eeebe7fffac4de401e",
+      "recordedAt": "2026-11-21T08:13:27.457Z"
+    },
+    "31337:0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorSettled",
+      "blockNumber": 12,
+      "txHash": "0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c",
+      "recordedAt": "2026-11-21T08:13:28.560Z"
+    },
+    "31337:0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c:1": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorSettled",
+      "blockNumber": 12,
+      "txHash": "0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c",
+      "recordedAt": "2026-11-21T08:13:28.561Z"
+    },
+    "31337:0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c:2": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorSettled",
+      "blockNumber": 12,
+      "txHash": "0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c",
+      "recordedAt": "2026-11-21T08:13:28.561Z"
+    },
+    "31337:0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c:3": {
+      "contractName": "SchellingVoting",
+      "eventName": "DisputeFinalized",
+      "blockNumber": 12,
+      "txHash": "0x1ce987b96ab7fa033bad5160f89067a4298a5888173d50c6ccb6c5e66b6a9f9c",
+      "recordedAt": "2026-11-21T08:13:28.563Z"
+    },
+    "31337:0x8029e5a4def56abaa82b09f74246244b3c1639dba8879f54c4af721927a46c4c:0": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "PayoutCredited",
+      "blockNumber": 13,
+      "txHash": "0x8029e5a4def56abaa82b09f74246244b3c1639dba8879f54c4af721927a46c4c",
+      "recordedAt": "2026-11-21T08:13:29.686Z"
+    },
+    "31337:0x8029e5a4def56abaa82b09f74246244b3c1639dba8879f54c4af721927a46c4c:1": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "BountySettled",
+      "blockNumber": 13,
+      "txHash": "0x8029e5a4def56abaa82b09f74246244b3c1639dba8879f54c4af721927a46c4c",
+      "recordedAt": "2026-11-21T08:13:29.688Z"
+    },
+    "31337:0x31bcc4cd38272377b0b6bddebc5b9a551b011d7bc0f877e8405135d0ef49bb0a:0": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "BountyFunded",
+      "blockNumber": 14,
+      "txHash": "0x31bcc4cd38272377b0b6bddebc5b9a551b011d7bc0f877e8405135d0ef49bb0a",
+      "recordedAt": "2026-11-21T08:17:45.085Z"
+    },
+    "31337:0x04cc7dd41d51534616cd25779c0f5aef9be649ecde0a1d9435a445f7ba1d70bf:0": {
+      "contractName": "SubmissionRegistry",
+      "eventName": "SubmissionRegistered",
+      "blockNumber": 15,
+      "txHash": "0x04cc7dd41d51534616cd25779c0f5aef9be649ecde0a1d9435a445f7ba1d70bf",
+      "recordedAt": "2026-11-21T08:17:55.530Z"
+    },
+    "31337:0xbbc0aab75343dd1940ce20c354f1d024c200f58289e09ce5e78acbfbe3b72eb5:5": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "DisputeOpened",
+      "blockNumber": 16,
+      "txHash": "0xbbc0aab75343dd1940ce20c354f1d024c200f58289e09ce5e78acbfbe3b72eb5",
+      "recordedAt": "2026-11-21T08:17:55.552Z"
+    },
+    "31337:0xbbc0aab75343dd1940ce20c354f1d024c200f58289e09ce5e78acbfbe3b72eb5:3": {
+      "contractName": "SchellingVoting",
+      "eventName": "DisputeCreated",
+      "blockNumber": 16,
+      "txHash": "0xbbc0aab75343dd1940ce20c354f1d024c200f58289e09ce5e78acbfbe3b72eb5",
+      "recordedAt": "2026-11-21T08:17:55.574Z"
+    },
+    "31337:0xbbc0aab75343dd1940ce20c354f1d024c200f58289e09ce5e78acbfbe3b72eb5:4": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorsSelected",
+      "blockNumber": 16,
+      "txHash": "0xbbc0aab75343dd1940ce20c354f1d024c200f58289e09ce5e78acbfbe3b72eb5",
+      "recordedAt": "2026-11-21T08:17:55.579Z"
+    },
+    "31337:0x9b8a79c034e979b803a11cba070f27c5b0cb529c4b9d606991d83dc4f5b287fc:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteCommitted",
+      "blockNumber": 17,
+      "txHash": "0x9b8a79c034e979b803a11cba070f27c5b0cb529c4b9d606991d83dc4f5b287fc",
+      "recordedAt": "2026-11-21T08:18:07.044Z"
+    },
+    "31337:0x8215dc51c21139946e2bf89bfe63e3e733b4d2ef64e28ef653f5027b2d331392:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteCommitted",
+      "blockNumber": 18,
+      "txHash": "0x8215dc51c21139946e2bf89bfe63e3e733b4d2ef64e28ef653f5027b2d331392",
+      "recordedAt": "2026-11-21T08:18:13.315Z"
+    },
+    "31337:0x6ce939b31c9773ce536c89a9cfc72eea2666904df031cf40154e59d572e53498:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteCommitted",
+      "blockNumber": 19,
+      "txHash": "0x6ce939b31c9773ce536c89a9cfc72eea2666904df031cf40154e59d572e53498",
+      "recordedAt": "2026-11-21T08:18:18.551Z"
+    },
+    "31337:0x69fb7c0390747aea028b9f67223d7188e2dab63a1b67c491b699b92a07bbd098:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteRevealed",
+      "blockNumber": 20,
+      "txHash": "0x69fb7c0390747aea028b9f67223d7188e2dab63a1b67c491b699b92a07bbd098",
+      "recordedAt": "2026-11-21T08:18:21.753Z"
+    },
+    "31337:0x22b2935633287d0e46889cb25fe8018789b6e94d64cbf29f1e30c3b230f41aa2:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteRevealed",
+      "blockNumber": 21,
+      "txHash": "0x22b2935633287d0e46889cb25fe8018789b6e94d64cbf29f1e30c3b230f41aa2",
+      "recordedAt": "2026-11-21T08:18:24.929Z"
+    },
+    "31337:0x6440b07217f6a64b611d952bfe3b9d001c216c692c6b777ef0d2b2c797d59da1:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "VoteRevealed",
+      "blockNumber": 22,
+      "txHash": "0x6440b07217f6a64b611d952bfe3b9d001c216c692c6b777ef0d2b2c797d59da1",
+      "recordedAt": "2026-11-21T08:18:29.149Z"
+    },
+    "31337:0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f:0": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorSettled",
+      "blockNumber": 23,
+      "txHash": "0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f",
+      "recordedAt": "2026-11-21T08:18:30.266Z"
+    },
+    "31337:0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f:1": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorSettled",
+      "blockNumber": 23,
+      "txHash": "0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f",
+      "recordedAt": "2026-11-21T08:18:30.267Z"
+    },
+    "31337:0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f:2": {
+      "contractName": "SchellingVoting",
+      "eventName": "JurorSettled",
+      "blockNumber": 23,
+      "txHash": "0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f",
+      "recordedAt": "2026-11-21T08:18:30.267Z"
+    },
+    "31337:0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f:3": {
+      "contractName": "SchellingVoting",
+      "eventName": "DisputeFinalized",
+      "blockNumber": 23,
+      "txHash": "0x29e6f0d8f34ef61b8bc322ac081d2691b6f46999e880a147adce5ae9f1dd3e7f",
+      "recordedAt": "2026-11-21T08:18:30.268Z"
+    },
+    "31337:0xc682253c4723de42bae9af7f999bd17c5ee1c6cc694489b86333e267ae75d043:0": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "PayoutCredited",
+      "blockNumber": 24,
+      "txHash": "0xc682253c4723de42bae9af7f999bd17c5ee1c6cc694489b86333e267ae75d043",
+      "recordedAt": "2026-11-21T08:18:31.363Z"
+    },
+    "31337:0xc682253c4723de42bae9af7f999bd17c5ee1c6cc694489b86333e267ae75d043:1": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "BountySettled",
+      "blockNumber": 24,
+      "txHash": "0xc682253c4723de42bae9af7f999bd17c5ee1c6cc694489b86333e267ae75d043",
+      "recordedAt": "2026-11-21T08:18:31.366Z"
+    },
+    "31337:0xf8c1bf92275963d93a5c83935fdaa865836013531e47f0941edc80d5704d562f:0": {
+      "contractName": "ArbitratedBounty",
+      "eventName": "PayoutWithdrawn",
+      "blockNumber": 26,
+      "txHash": "0xf8c1bf92275963d93a5c83935fdaa865836013531e47f0941edc80d5704d562f",
+      "recordedAt": "2026-11-21T08:18:53.181Z"
     }
   },
   "executedActions": {},
-  "disputes": {},
-  "bounties": {},
+  "disputes": {
+    "1": {
+      "creator": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "submissionId": "0xf6a30255fd27cad8c5536ecb162fc74d66b2a4c9548ceac86c5810a872925bf8",
+      "externalRef": 1,
+      "status": 3,
+      "selectionRequestId": 1,
+      "createdAt": 1795248534,
+      "disputeId": "1",
+      "updatedAt": "2026-11-21T08:13:28.562Z",
+      "jurors": [
+        "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+        "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+        "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f"
+      ],
+      "jurySize": 3,
+      "commitDeadline": 1795334933,
+      "revealDeadline": 1795421333,
+      "committedCount": 3,
+      "revealedCount": 3,
+      "outcome": 1
+    },
+    "2": {
+      "creator": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "submissionId": "0xfd9ffe77d9a69564a4ac3557f756d25dd7fd9669bd6e57b8ddf7052d1f1d9c6b",
+      "externalRef": 2,
+      "status": 3,
+      "selectionRequestId": 2,
+      "createdAt": 1795249075,
+      "disputeId": "2",
+      "updatedAt": "2026-11-21T08:18:30.268Z",
+      "jurors": [
+        "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+        "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f"
+      ],
+      "jurySize": 3,
+      "commitDeadline": 1795335475,
+      "revealDeadline": 1795421875,
+      "committedCount": 3,
+      "revealedCount": 3,
+      "outcome": 1
+    }
+  },
+  "bounties": {
+    "1": {
+      "submissionId": "0xd15c9a6272d6a020be2d5a2c45821cbadffb2ee2d7d0b750247576ef5b5ca71a",
+      "funder": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "whistleblower": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "amount": "1500000000000000000",
+      "lockId": "0x28dfed72293515fd23f352b068164dbbd79b2b95ad0ec66f3400063c93090d20",
+      "timelock": 1795852848,
+      "status": 3,
+      "bountyId": "1",
+      "updatedAt": "2026-11-21T08:13:29.687Z",
+      "activeDispute": 0
+    },
+    "2": {
+      "submissionId": "0x357e86051b48ba09922af1238b0d3963ec929030d7015d9db07ae68fa32581c1",
+      "funder": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "whistleblower": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "amount": "11000000000000000000",
+      "lockId": "0xfa43fab6c7597266caf00473e0860e8948b695deb221155e8934716283895ef5",
+      "timelock": 1795853864,
+      "status": 3,
+      "bountyId": "2",
+      "updatedAt": "2026-11-21T08:18:31.364Z",
+      "activeDispute": 0
+    }
+  },
   "submissions": {
-    "0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c": {
+    "0xf6a30255fd27cad8c5536ecb162fc74d66b2a4c9548ceac86c5810a872925bf8": {
       "submitter": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-      "ipfsCid": "Qm0fc291d0196439aad50bf0a8d1563198c260943c897d",
-      "merkleRoot": "0xa8a38eb1ab21709b844a9f160bd64b0baf6a887291659b7766f598dd5eac9e1f",
-      "timestamp": 1795150149,
-      "submissionId": "0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c",
-      "updatedAt": "2026-11-20T04:59:10.417Z"
+      "ipfsCid": "Qm9cc97296e7c866713846473fcbdb9977d9729596c1fd",
+      "merkleRoot": "0x3d8b1543039e78e3157a54015dc7a11644c3ab239f9a53351d46c9d6293ab335",
+      "timestamp": 1795248533,
+      "submissionId": "0xf6a30255fd27cad8c5536ecb162fc74d66b2a4c9548ceac86c5810a872925bf8",
+      "updatedAt": "2026-11-21T08:08:54.108Z"
+    },
+    "0xfd9ffe77d9a69564a4ac3557f756d25dd7fd9669bd6e57b8ddf7052d1f1d9c6b": {
+      "submitter": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "ipfsCid": "Qma7db6d09b676adb2c1c82e065a155ee24f5cd42ae70c",
+      "merkleRoot": "0x7cd96d45f42b06f3211ee1802b38f933ce6de732145013e1f434fed8aae9a633",
+      "timestamp": 1795249075,
+      "submissionId": "0xfd9ffe77d9a69564a4ac3557f756d25dd7fd9669bd6e57b8ddf7052d1f1d9c6b",
+      "updatedAt": "2026-11-21T08:17:55.528Z"
     }
   },
   "alerts": [
     {
-      "id": "1795151027757-3gp8q",
-      "level": "ERROR",
-      "message": "[watchtower-node-3] 💥 SIMULATED NODE CRASH: watchtower-node-3 halted at block checkpoint 101! Standby watchtowers must take over.",
+      "id": "1795249111365-64cr3",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed BountySettled: #2 New Status: 3",
       "details": {},
-      "timestamp": "2026-11-20T05:03:47.757Z"
+      "timestamp": "2026-11-21T08:18:31.365Z"
     },
     {
-      "id": "1795150750417-1neub",
+      "id": "1795249110316-2lb10",
       "level": "INFO",
-      "message": "[watchtower-node-3] Observed SubmissionRegistered: 0x820f4d1a28d5e6ef73c8a70ff08f46adb9fc2c20effeacf694b9b7a80d7aee1c",
+      "message": "[watchtower-node-3] [Read-Only Alert] Action needed: Bounty #2 ready to settle (Dispute #2 is FINALIZED).",
       "details": {},
-      "timestamp": "2026-11-20T04:59:10.417Z"
+      "timestamp": "2026-11-21T08:18:30.316Z"
     },
     {
-      "id": "1795150750400-qg8gv",
+      "id": "1795249110268-a3qi2",
       "level": "INFO",
-      "message": "[watchtower-node-3] Health monitoring HTTP server listening on http://127.0.0.1:9103",
+      "message": "[watchtower-node-3] Observed DisputeFinalized: #2 Outcome: 1",
       "details": {},
-      "timestamp": "2026-11-20T04:59:10.400Z"
+      "timestamp": "2026-11-21T08:18:30.268Z"
     },
     {
-      "id": "1795150750391-y0e77",
+      "id": "1795249109202-p0r71",
       "level": "INFO",
-      "message": "[watchtower-node-3] Watchtower started with checkpoint at block 0",
+      "message": "[watchtower-node-3] [Read-Only Alert] Action needed: Dispute #2 ready for finalization (all jurors revealed).",
       "details": {},
-      "timestamp": "2026-11-20T04:59:10.391Z"
+      "timestamp": "2026-11-21T08:18:29.202Z"
     },
     {
-      "id": "1795150750390-si3w6",
+      "id": "1795249075578-yh1k5",
       "level": "INFO",
-      "message": "[watchtower-node-3] Connected to network chainId: 31337",
+      "message": "[watchtower-node-3] Observed JurorsSelected: #2 (3 jurors)",
       "details": {},
-      "timestamp": "2026-11-20T04:59:10.390Z"
+      "timestamp": "2026-11-21T08:17:55.578Z"
+    },
+    {
+      "id": "1795249075574-gztnx",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed DisputeCreated: #2",
+      "details": {},
+      "timestamp": "2026-11-21T08:17:55.574Z"
+    },
+    {
+      "id": "1795249075552-fbsnr",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed DisputeOpened on Bounty #2: Dispute #2",
+      "details": {},
+      "timestamp": "2026-11-21T08:17:55.552Z"
+    },
+    {
+      "id": "1795249075529-m7cv8",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed SubmissionRegistered: 0xfd9ffe77d9a69564a4ac3557f756d25dd7fd9669bd6e57b8ddf7052d1f1d9c6b",
+      "details": {},
+      "timestamp": "2026-11-21T08:17:55.529Z"
+    },
+    {
+      "id": "1795249065085-q9701",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed BountyFunded: #2",
+      "details": {},
+      "timestamp": "2026-11-21T08:17:45.085Z"
+    },
+    {
+      "id": "1795248809687-hqmw7",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed BountySettled: #1 New Status: 3",
+      "details": {},
+      "timestamp": "2026-11-21T08:13:29.687Z"
+    },
+    {
+      "id": "1795248808625-jdgvx",
+      "level": "INFO",
+      "message": "[watchtower-node-3] [Read-Only Alert] Action needed: Bounty #1 ready to settle (Dispute #1 is FINALIZED).",
+      "details": {},
+      "timestamp": "2026-11-21T08:13:28.625Z"
+    },
+    {
+      "id": "1795248808562-0cs8p",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed DisputeFinalized: #1 Outcome: 1",
+      "details": {},
+      "timestamp": "2026-11-21T08:13:28.562Z"
+    },
+    {
+      "id": "1795248807497-zzods",
+      "level": "INFO",
+      "message": "[watchtower-node-3] [Read-Only Alert] Action needed: Dispute #1 ready for finalization (all jurors revealed).",
+      "details": {},
+      "timestamp": "2026-11-21T08:13:27.497Z"
+    },
+    {
+      "id": "1795248534157-uggqd",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed JurorsSelected: #1 (3 jurors)",
+      "details": {},
+      "timestamp": "2026-11-21T08:08:54.157Z"
+    },
+    {
+      "id": "1795248534151-1oc3e",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed DisputeCreated: #1",
+      "details": {},
+      "timestamp": "2026-11-21T08:08:54.151Z"
+    },
+    {
+      "id": "1795248534130-694sw",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed DisputeOpened on Bounty #1: Dispute #1",
+      "details": {},
+      "timestamp": "2026-11-21T08:08:54.130Z"
+    },
+    {
+      "id": "1795248534109-n569s",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed SubmissionRegistered: 0xf6a30255fd27cad8c5536ecb162fc74d66b2a4c9548ceac86c5810a872925bf8",
+      "details": {},
+      "timestamp": "2026-11-21T08:08:54.109Z"
+    },
+    {
+      "id": "1795248049267-b4cm7",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Observed BountyFunded: #1",
+      "details": {},
+      "timestamp": "2026-11-21T08:00:49.267Z"
+    },
+    {
+      "id": "1795237534725-rgurl",
+      "level": "INFO",
+      "message": "[watchtower-node-3] Detected chain reset (head block 2). Cleared watchtower state.",
+      "details": {},
+      "timestamp": "2026-11-21T05:05:34.725Z"
     }
   ]
 }

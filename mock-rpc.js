@@ -89,9 +89,91 @@ function encryptBufferAesGcm(plainBuf) {
 let blockNumber = 100;
 let timeOffsetSec = 0;
 const logs = [];
+const minedBlocks = [];
+const rejectedBlocks = [];
 const txReceipts = new Map();
 const nonces = new Map();
 const ethBalances = new Map();
+
+const VALIDATOR_NODES = [
+  { id: "validator-node-1", name: "Validator / Watchtower 1", address: "0x90F79bf6EB2c4f870365E785982E1f101E93b906" },
+  { id: "validator-node-2", name: "Validator / Watchtower 2", address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" },
+  { id: "validator-node-3", name: "Validator / Watchtower 3", address: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199" }
+];
+
+function getBlockHash(num) {
+  return "0x" + crypto.createHash("sha256").update("verileaks-block-chain:" + num).digest("hex");
+}
+
+function recordMinedBlock({
+  num,
+  txHash,
+  from,
+  to,
+  contractName,
+  methodName,
+  valueWei = 0n,
+  callData = "0x",
+  gasUsed = 89420,
+  events = []
+}) {
+  const hash = getBlockHash(num);
+  const parentHash = getBlockHash(num - 1);
+  const stateRoot =
+    "0x" +
+    crypto
+      .createHash("sha256")
+      .update(`state:${num}:${txHash}:${getTotalStaked()}:${bounties.size}:${disputes.size}`)
+      .digest("hex");
+  const txRoot =
+    "0x" + crypto.createHash("sha256").update(`txroot:${num}:${txHash}`).digest("hex");
+
+  // Multi-Validator BFT Consensus Attestations (3/3 Validators Verify ParentHash, StateRoot & Signature)
+  const attestations = VALIDATOR_NODES.map((v) => ({
+    nodeId: v.id,
+    name: v.name,
+    validatorAddress: v.address,
+    vote: "APPROVE",
+    checks: "ParentHash ✅ | ECDSA Sig ✅ | StateRoot ✅",
+    signature:
+      "0x" +
+      crypto
+        .createHash("sha256")
+        .update(`attest:${v.address}:${num}:${hash}:${stateRoot}`)
+        .digest("hex")
+        .slice(0, 40) +
+      "..."
+  }));
+
+  minedBlocks.push({
+    blockNumber: num,
+    blockNumberHex: "0x" + num.toString(16),
+    hash,
+    parentHash,
+    stateRoot,
+    transactionsRoot: txRoot,
+    timestamp: nowTimestamp(),
+    gasUsed,
+    gasLimit: 30000000,
+    chainId: 31337,
+    consensus: {
+      status: "COMMITTED (3/3 BFT Quorum Agreed)",
+      approvals: 3,
+      totalValidators: 3,
+      attestations
+    },
+    tx: {
+      hash: txHash,
+      from,
+      to,
+      contractName,
+      methodName,
+      valueEth: ethers.formatEther(valueWei),
+      callData: callData.length > 74 ? callData.slice(0, 74) + "..." : callData,
+      events
+    }
+  });
+}
 
 for (const addr of Object.values(DEMO_ACCOUNTS)) {
   ethBalances.set(addr.toLowerCase(), ethers.parseEther("100.0"));
@@ -165,6 +247,8 @@ function resetAllState(includeSampleBounties = false) {
   blockNumber = 100;
   timeOffsetSec = 0;
   logs.length = 0;
+  minedBlocks.length = 0;
+  rejectedBlocks.length = 0;
   txReceipts.clear();
   nonces.clear();
   ethBalances.clear();
@@ -232,6 +316,22 @@ function resetAllState(includeSampleBounties = false) {
     [defaultSubId, DEMO_ACCOUNTS.whistleblower, defaultCid, defaultRoot, BigInt(ts)],
     subTxHash
   );
+
+  recordMinedBlock({
+    num: blockNumber,
+    txHash: subTxHash,
+    from: DEMO_ACCOUNTS.deployer,
+    to: deployments.staking,
+    contractName: "TokenStaking.sol & SubmissionRegistry.sol",
+    methodName: "Genesis Protocol Initialization & 5-Juror Pool Staking (10.0 ETH)",
+    valueWei: ethers.parseEther("10.0"),
+    callData: "0x3a4b66f1000000000000000000000000",
+    gasUsed: 214800,
+    events: [
+      "Staked(Juror1..Juror5, 2.0 ETH each -> Total 10.0 ETH)",
+      `SubmissionRegistered(${defaultSubId.slice(0, 14)}...)`
+    ]
+  });
 
   if (!includeSampleBounties) {
     return;
@@ -725,7 +825,7 @@ function executeTransaction({ from, to, data, value, hash }) {
   const receipt = {
     transactionHash: hash,
     transactionIndex: "0x0",
-    blockHash: "0x" + crypto.createHash("sha256").update("block:" + blockNumber).digest("hex"),
+    blockHash: getBlockHash(blockNumber),
     blockNumber: "0x" + blockNumber.toString(16),
     from: sender,
     to: to,
@@ -739,6 +839,39 @@ function executeTransaction({ from, to, data, value, hash }) {
     type: "0x2"
   };
   txReceipts.set(hash.toLowerCase(), receipt);
+
+  const contractMap = {
+    registry: "SubmissionRegistry.sol",
+    staking: "TokenStaking.sol",
+    bounty: "ArbitratedBounty.sol (HTLC Adapter)",
+    voting: "SchellingVoting.sol",
+    htlc: "HTLC.sol"
+  };
+  const contractLabel = match ? contractMap[match.contractKey] || "ProtocolContract" : "EVM Contract";
+  const methodLabel = match ? `${match.parsed.name}()` : "rawTransaction()";
+  const decodedEventNames = txLogs.map((l) => {
+    for (const iface of Object.values(ifaces)) {
+      try {
+        const parsedLog = iface.parseLog(l);
+        if (parsedLog) return `${parsedLog.name}`;
+      } catch (_) {}
+    }
+    return "EventLog";
+  });
+
+  recordMinedBlock({
+    num: blockNumber,
+    txHash: hash,
+    from: sender,
+    to: to || deployments.registry,
+    contractName: contractLabel,
+    methodName: methodLabel,
+    valueWei: msgValue,
+    callData: data || "0x",
+    gasUsed: 68400 + txLogs.length * 14200,
+    events: decodedEventNames
+  });
+
   return hash;
 }
 
@@ -1153,6 +1286,24 @@ function handleRpcMethod(method, params = []) {
             [BigInt(bId), BigInt(createdDisputeId), BigInt(b.openCount), BigInt(8888 + createdDisputeId)],
             autoTxHash
           );
+
+          recordMinedBlock({
+            num: blockNumber,
+            txHash: autoTxHash,
+            from: deployments.arbitratedBounty,
+            to: deployments.voting,
+            contractName: "JurorSelection.sol & SchellingVoting.sol",
+            methodName: `Automated Chainlink VRF 3-of-5 Jury Selection (Dispute #${createdDisputeId})`,
+            valueWei: 0n,
+            callData: "0x9d4a2e1100000000000000000000000000000001",
+            gasUsed: 184500,
+            events: [
+              `DisputeCreated(#${createdDisputeId})`,
+              `JurorsSelected(3 of 5 Random VRF Jurors)`,
+              `StakeLocked(1.0 ETH x 3 Selected Jurors)`,
+              `DisputeOpened(Bounty #${bId} -> Dispute #${createdDisputeId})`
+            ]
+          });
         }
 
         return {
@@ -1215,6 +1366,86 @@ function handleRpcMethod(method, params = []) {
       }
       return { ok: true };
     }
+    case "verileaks_simulateMaliciousBlock": {
+      const [attackType] = params;
+      const candidateNum = blockNumber + 1;
+      const expectedParentHash = getBlockHash(blockNumber);
+      const expectedStateRoot =
+        "0x" +
+        crypto
+          .createHash("sha256")
+          .update(`state:${blockNumber}:canonical:${getTotalStaked()}:${bounties.size}:${disputes.size}`)
+          .digest("hex");
+
+      const rogueMiner = "0xDEAD00000000000000000000000000000000BEEF";
+      let proposedParentHash = expectedParentHash;
+      let proposedStateRoot = expectedStateRoot;
+      let attackTitle = "";
+      let failureReason = "";
+      let maliciousMethod = "";
+
+      if (attackType === "parent_hash") {
+        proposedParentHash =
+          "0xbad0000000000000" +
+          crypto.createHash("sha256").update("forged-parent:" + Date.now()).digest("hex").slice(16);
+        attackTitle = "History Tampering / Invalid Parent Hash Attack";
+        maliciousMethod = "SubmissionRegistry.overwriteMerkleRoot(0xforged...)";
+        failureReason = `INVALID_PARENT_HASH: Proposed parentHash (${proposedParentHash.slice(0, 14)}...) does not match canonical Block #${blockNumber} hash (${expectedParentHash.slice(0, 14)}...).`;
+      } else if (attackType === "state_root") {
+        proposedStateRoot =
+          "0xfake57a7e0000000" +
+          crypto.createHash("sha256").update("forged-state:" + Date.now()).digest("hex").slice(16);
+        attackTitle = "Invalid State Root / Unauthorized 500 ETH Escrow Theft";
+        maliciousMethod = "ArbitratedBounty.forceDrainEscrow(0xDEAD...BEEF, 500 ETH)";
+        failureReason = `STATE_ROOT_MISMATCH: Re-executing block transactions produced stateRoot ${expectedStateRoot.slice(0, 14)}..., which disagrees with rogue miner's claimed stateRoot ${proposedStateRoot.slice(0, 14)}...`;
+      } else {
+        attackTitle = "Forged ECDSA Signature / Unauthorized Finalization Attack";
+        maliciousMethod = "SchellingVoting.forceOutcome(disputeId=1, outcome=FAKE)";
+        failureReason = `ECDSA_SIGNATURE_INVALID: Transaction signature recovery (ecrecover) failed; sender ${rogueMiner} does not hold the private key for impersonated account.`;
+      }
+
+      const maliciousBlockHash =
+        "0xdead" +
+        crypto
+          .createHash("sha256")
+          .update(`malicious:${candidateNum}:${attackType}:${Date.now()}`)
+          .digest("hex")
+          .slice(4);
+
+      const rejections = VALIDATOR_NODES.map((v) => ({
+        nodeId: v.id,
+        name: v.name,
+        validatorAddress: v.address,
+        vote: "REJECT",
+        reason: failureReason
+      }));
+
+      const rejectedEntry = {
+        id: rejectedBlocks.length + 1,
+        candidateBlockNumber: candidateNum,
+        attackType,
+        attackTitle,
+        rogueMiner,
+        maliciousMethod,
+        maliciousBlockHash,
+        proposedParentHash,
+        expectedParentHash,
+        proposedStateRoot,
+        expectedStateRoot,
+        failureReason,
+        timestamp: nowTimestamp(),
+        consensus: {
+          status: "REJECTED BY CONSENSUS (0/3 Validators Approved — 3/3 Disagreed)",
+          approvals: 0,
+          rejectionsCount: 3,
+          totalValidators: 3,
+          rejections
+        }
+      };
+
+      rejectedBlocks.unshift(rejectedEntry);
+      return { ok: true, rejectedBlock: rejectedEntry };
+    }
     case "verileaks_getStateSummary": {
       const allSubmissions = submissionOrder.map((id) => {
         const s = submissions.get(id.toLowerCase());
@@ -1270,7 +1501,9 @@ function handleRpcMethod(method, params = []) {
         bountyCount: bounties.size,
         disputeCount: disputes.size,
         jurors: jurorSummary,
-        disputeVotes: disputeVotesSummary
+        disputeVotes: disputeVotesSummary,
+        blocks: minedBlocks,
+        rejectedBlocks
       };
     }
     default:
